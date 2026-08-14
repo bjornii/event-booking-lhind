@@ -1,4 +1,4 @@
-package com.lufthansa.internship.core;
+package com.lufthansa.internship;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

@@ -30,8 +30,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>de.lhind.internship</groupId>
-        <artifactId>hotel-core</artifactId>
+        <groupId>com.lufthansa.internship</groupId>
+        <artifactId>event-booking-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

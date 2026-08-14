@@ -16,7 +16,6 @@
     <dependency>
       <groupId>com.lufthansa.internship</groupId>
       <artifactId>event-booking-core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -71,7 +70,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <mainClass>de.lhind.internship.mini.project.Application</mainClass>
+          <mainClass>com.lufthansa.internship.EventBookingApplication</mainClass>
         </configuration>
       </plugin>
     </plugins>

@@ -1,4 +1,4 @@
-package com.lufthansa.internship.api;
+package com.lufthansa.internship;
 
 /**
  * Hello world!
