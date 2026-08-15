@@ -22,9 +22,13 @@ public class Venue {
     private Integer id;
 
     private String name;
+
     private String address;
+
     private String city;
+
     private String capacity;
+
 
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events = new ArrayList<>();

@@ -1,5 +1,6 @@
 package com.lufthansa.internship.dto.response;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Builder
@@ -8,4 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryResponseDTO {
+
+    @NotBlank
+    private String name;
+
 }

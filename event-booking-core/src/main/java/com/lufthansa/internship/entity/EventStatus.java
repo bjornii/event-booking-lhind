@@ -1,7 +1,7 @@
 package com.lufthansa.internship.entity;
 
 public enum EventStatus {
-    AWAITING,
+    UPCOMING,
     ONGOING,
     FINISHED,
     CANCELLED
