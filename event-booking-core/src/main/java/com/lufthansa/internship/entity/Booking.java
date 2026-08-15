@@ -29,5 +29,12 @@ public class Booking {
     @Column(name = "booking_date")
     private LocalDate bookingDate;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
+    private Event event;
 
 }

@@ -9,7 +9,9 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "event_id"})
+    })
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,5 +28,13 @@ public class Review {
 
     @Column(name = "created_at")
     private LocalDate createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
+    private Event event;
 
 }

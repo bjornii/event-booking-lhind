@@ -1,13 +1,13 @@
 package com.lufthansa.internship;
 
-/**
- * Hello world!
- *
- */
-public class EventBookingApplication
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+
+@SpringBootApplication
+public class EventBookingApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(EventBookingApplication.class, args);
     }
 }
