@@ -1,15 +1,8 @@
 package com.lufthansa.internship.dto.request;
 
-import com.lufthansa.internship.entity.Booking;
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.Review;
-import com.lufthansa.internship.entity.UserRole;
-import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Builder
 @Getter
@@ -22,7 +15,7 @@ public class UserRequestDTO {
     private String username;
     @NotBlank
     private String password;
-    @NotBlank
+    @Email
     private String email;
 
 }
