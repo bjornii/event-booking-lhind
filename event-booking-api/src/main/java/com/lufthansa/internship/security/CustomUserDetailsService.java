@@ -1,8 +1,12 @@
 package com.lufthansa.internship.security;
 
+import com.lufthansa.internship.dto.request.UserRegisterRequestDTO;
+import com.lufthansa.internship.dto.response.UserResponseDTO;
 import com.lufthansa.internship.entity.User;
+import com.lufthansa.internship.entity.UserRole;
+import com.lufthansa.internship.exception.DuplicateEmailException;
+import com.lufthansa.internship.mapper.UserMapper;
 import com.lufthansa.internship.repository.UserRepository;
-import com.lufthansa.internship.security.dto.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,14 +14,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -26,19 +29,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new AppUserPrincipal(user);
     }
 
-    public User register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.email()) != null) {
-            throw new IllegalArgumentException("This email already exists");
+    public UserResponseDTO register(UserRegisterRequestDTO request) {
+        if (userRepository.findByEmail(request.getEmail()) != null) {
+            throw new DuplicateEmailException("This email already exists");
         }
 
-        User user = new User();
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-        user.setEmail(request.email());
-        user.setPhoneNumber(request.phoneNumber());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(AppRole.ADMIN);
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(UserRole.ATTENDEE);
 
-        return userRepository.save(guest);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
 }

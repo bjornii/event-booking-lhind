@@ -1,12 +1,8 @@
 package com.lufthansa.internship.mapper;
 
-import com.lufthansa.internship.dto.request.UserRequestDTO;
-import com.lufthansa.internship.dto.response.BookingResponseDTO;
-import com.lufthansa.internship.dto.response.ReviewResponseDTO;
+import com.lufthansa.internship.dto.request.UserRegisterRequestDTO;
 import com.lufthansa.internship.dto.response.UserResponseDTO;
-import com.lufthansa.internship.entity.Booking;
 import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.Review;
 import com.lufthansa.internship.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,10 +16,10 @@ public interface UserMapper {
     @Mapping(target = "events", ignore = true)
     @Mapping(target = "bookings", ignore = true)
     @Mapping(target = "reviews", ignore = true)
-    User toEntity(UserRequestDTO dto);
+    User toEntity(UserRegisterRequestDTO dto);
 
     @Mapping(source = "role", target = "role")
-    @Mapping(target = "events", expression = "java(mapEventTitles(event.getEvents()))")
+    @Mapping(target = "events", expression = "java(mapEventTitles(user.getEvents()))")
     UserResponseDTO toDTO(User user);
 
     default List<String> mapEventTitles(List<Event> events){

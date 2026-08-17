@@ -1,38 +1,12 @@
 package com.lufthansa.internship;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Unit test for simple App.
- */
-public class EventBookingApplicationTest
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public EventBookingApplicationTest(String testName )
-    {
-        super( testName );
-    }
+class EventBookingApplicationTest {
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( EventBookingApplicationTest.class );
-    }
-
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
+    @Test
+    void testApp() {
+        assertTrue(true, "Basic sanity check");
     }
 }

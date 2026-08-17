@@ -14,6 +14,8 @@ import java.util.List;
 public interface EventMapper {
 
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "bookings", ignore = true)
+    @Mapping(target = "reviews", ignore = true)
     @Mapping(source = "venueId", target = "venue.id")
     @Mapping(source = "organizerId", target = "organizer.id")
     @Mapping(target = "categories", ignore = true)

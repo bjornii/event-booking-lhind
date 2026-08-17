@@ -18,11 +18,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private String firstName;
+
+    private String lastName;
+
     private String username;
 
     private String password;
 
     private String email;
+
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     private UserRole role;

@@ -11,13 +11,13 @@ import org.mapstruct.Mapping;
 public interface BookingMapper {
 
     @Mapping(target = "status", ignore = true)
-    @Mapping(source = "userId", target = "user.id")
-    @Mapping(source = "eventId", target = "event.id")
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "event", ignore = true)
     Booking toEntity(BookingRequestDTO dto);
 
     @Mapping(source = "status", target = "status")
-    @Mapping(source = "userId", target = "user.id")
-    @Mapping(source = "eventId", target = "event.id")
+    @Mapping(source = "user.username", target = "userName")
+    @Mapping(source = "event.title", target = "eventName")
     BookingResponseDTO toDTO(Booking booking);
 
 
