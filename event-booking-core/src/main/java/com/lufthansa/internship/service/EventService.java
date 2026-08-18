@@ -102,5 +102,10 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    public EventResponseDTO getSingleEvent(Integer eventId){
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        return eventMapper.toDTO(event);
+    }
+
 
 }

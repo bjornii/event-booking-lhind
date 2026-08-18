@@ -4,6 +4,7 @@ import com.lufthansa.internship.entity.BookingStatus;
 import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -16,10 +17,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BookingRequestDTO {
 
-    @NotNull
+    @NotNull @Min(1)
     private Integer seatsBooked;
-    @NotNull
-    private LocalDate bookingDate;
     @NotNull
     private Integer userId;
     @NotNull
