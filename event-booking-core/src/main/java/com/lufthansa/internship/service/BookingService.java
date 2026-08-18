@@ -103,12 +103,13 @@ public class BookingService {
 
             List<Booking> bookingWaitlist = bookingRepository.findByEventAndStatusOrderByBookingDateAsc(event, BookingStatus.WAITLIST);
             for (Booking waiting : bookingWaitlist){
-                if (waiting.getSeatsBooked() <= event.getAvailableSeats())
+                if (waiting.getSeatsBooked() <= event.getAvailableSeats()) {
                     waiting.setStatus(BookingStatus.CONFIRMED);
                     event.setAvailableSeats(event.getAvailableSeats() - waiting.getSeatsBooked());
                     bookingRepository.save(waiting);
                     eventRepository.save(event);
                     if (event.getAvailableSeats() == 0) break;
+                }
             }
         }
 

@@ -13,7 +13,7 @@ public class ReviewResponseDTO {
 
     @NotNull
     private Integer rating;
-    @NotBlank
+
     private String comment;
     @NotBlank
     private String userName;

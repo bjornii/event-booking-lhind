@@ -3,6 +3,7 @@ package com.lufthansa.internship.repository;
 import com.lufthansa.internship.entity.Booking;
 import com.lufthansa.internship.entity.BookingStatus;
 import com.lufthansa.internship.entity.Event;
+import com.lufthansa.internship.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Page<Booking> findByEvent(Event event, Pageable pageable);
 
     List<Booking> findByEventAndStatusOrderByBookingDateAsc(Event event, BookingStatus bookingStatus);
+
+    boolean existsByUserAndEventAndStatus(User user, Event event, BookingStatus bookingStatus);
 }
