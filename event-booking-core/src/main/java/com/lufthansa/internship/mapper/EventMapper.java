@@ -27,6 +27,8 @@ public interface EventMapper {
     @Mapping(target = "avgRating", expression = "java(calculateAvgRating(event.getReviews()))")
     EventResponseDTO toDTO(Event event);
 
+    List<EventResponseDTO> toDTOList(List<Event> events);
+
     default List<String> mapCategoryNames(List<Category> categories) {
         if (categories == null) return List.of();
         return categories.stream().map(Category::getName).toList();
