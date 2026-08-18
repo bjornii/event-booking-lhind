@@ -4,6 +4,7 @@ package com.lufthansa.internship.controller;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
 import com.lufthansa.internship.security.AppUserPrincipal;
 import com.lufthansa.internship.service.BookingService;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/bookings")
+@AllArgsConstructor
 public class BookingController {
 
     private final BookingService bookingService;

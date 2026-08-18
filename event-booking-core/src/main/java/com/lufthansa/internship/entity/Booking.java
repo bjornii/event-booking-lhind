@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bookings")
@@ -27,7 +28,7 @@ public class Booking {
     private BookingStatus status;
 
     @Column(name = "booking_date")
-    private LocalDate bookingDate;
+    private LocalDateTime bookingDate;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,10 +28,10 @@ public class Event {
     private String description;
 
     @Column(name = "start_date_time")
-    private LocalDate startDateTime;
+    private LocalDateTime startDateTime;
 
     @Column(name = "end_date_time")
-    private LocalDate endDateTime;
+    private LocalDateTime endDateTime;
 
     private Double price;
 

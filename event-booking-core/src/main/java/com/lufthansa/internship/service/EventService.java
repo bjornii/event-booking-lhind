@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -86,7 +87,7 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
-    public Page<EventResponseDTO> getEventsByDateRange(LocalDate fromDate, LocalDate toDate, String sortVariable) {
+    public Page<EventResponseDTO> getEventsByDateRange(LocalDateTime fromDate, LocalDateTime toDate, String sortVariable) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
         Page<Event> events = eventRepository.findByStartDateTimeBetween(fromDate, toDate, pageable);

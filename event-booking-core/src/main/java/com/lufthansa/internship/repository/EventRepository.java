@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -19,7 +20,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     Page<Event> findByVenueIn(List<Venue> cityVenues, Pageable pageable);
 
-    Page<Event> findByStartDateTimeBetween(LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Event> findByStartDateTimeBetween(LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable);
 
     Page<Event> findByPriceBetween(Double startPrice, Double endPrice, Pageable pageable);
 }

@@ -6,9 +6,7 @@ import com.lufthansa.internship.entity.Booking;
 import com.lufthansa.internship.entity.BookingStatus;
 import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.User;
-import com.lufthansa.internship.exception.EventNotFoundException;
-import com.lufthansa.internship.exception.InsufficientSeatsException;
-import com.lufthansa.internship.exception.UserNotFoundException;
+import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.BookingMapper;
 import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
@@ -22,6 +20,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -36,32 +37,84 @@ public class BookingService {
     public BookingResponseDTO createBooking(BookingRequestDTO request){
         Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User does not exist!"));
-        if (request.getSeatsBooked() > event.getAvailableSeats()){
-            throw new InsufficientSeatsException("Requested number of seats are not available");
+        if (request.getSeatsBooked() > 6){
+            throw new SeatLimitExceedingException("Cannot book more than 6 seats per booking");
         }
 
         Booking booking = bookingMapper.toEntity(request);
-
-        booking.setBookingDate(LocalDate.now());
+        booking.setBookingDate(LocalDateTime.now());
         booking.setUser(user);
         booking.setEvent(event);
-        booking.setStatus(BookingStatus.PENDING);
+
+        if (request.getSeatsBooked() <= event.getAvailableSeats()){
+            booking.setStatus(BookingStatus.CONFIRMED);
+            event.setAvailableSeats(event.getAvailableSeats() - request.getSeatsBooked());
+            eventRepository.save(event);
+        } else {
+            booking.setStatus(BookingStatus.WAITLIST);
+        }
 
 //        SHOULD BE SET TO CONFIRMED AFTER PAYMENT CONFIRMED,
 //        MAYBE RETURN CHECK BACK LATER IF NO MORE AVAILABLE SEATS AND CURRENT BOOKING THAT OCCUPIES LAST SEATS IS NOT CONFIRMED YET
 
         Booking saved = bookingRepository.save(booking);
-        event.setAvailableSeats(event.getAvailableSeats() - request.getSeatsBooked());
         return bookingMapper.toDTO(saved);
 
     }
-
+    @Transactional
     public Page<BookingResponseDTO> viewMyBookings(Integer userId, String sortVariable){
-        if (sortVariable == null || sortVariable.isEmpty())  sortVariable="bookingDate";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable).descending());
         Page<Booking> bookings = bookingRepository.findByUserId(userId, pageable);
 
         return bookings.map(bookingMapper::toDTO);
     }
+    @Transactional
+    public Page<BookingResponseDTO> getAllBookings(){
+        Pageable pageable = PageRequest.of(0,10, Sort.by("bookingDate"));
+        Page<Booking> bookings = bookingRepository.findAll(pageable);
+        return bookings.map(bookingMapper::toDTO);
+    }
+    @Transactional
+    public Page<BookingResponseDTO> getAllBookingsForEvent(Integer eventId){
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
+
+        Pageable pageable = PageRequest.of(0,10, Sort.by("bookingDate").descending());
+        Page<Booking> bookings = bookingRepository.findByEvent(event, pageable);
+        return bookings.map(bookingMapper::toDTO);
+    }
+    @Transactional
+    public BookingResponseDTO cancelBooking (Integer bookingId, Integer userId){
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist!"));
+
+        if (!booking.getUser().getId().equals(userId)) throw new UnauthorizedCalcellationException("You can only cancel your own booking");
+        if (booking.getStatus() != BookingStatus.CONFIRMED) throw new InvalidCancellationRequestException("Booking cannot be cancelled");
+        Event event = booking.getEvent();
+        if (event.getStartDateTime().minusHours(24).isBefore(LocalDateTime.now())){
+            throw new InvalidCancellationRequestException("Cancellation policy does not allow cancelling bookings less than 24hrs before event");
+        }
+        BookingStatus formerStatus = booking.getStatus();
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        if(formerStatus == BookingStatus.CONFIRMED){
+            event.setAvailableSeats(event.getAvailableSeats() + booking.getSeatsBooked());
+            eventRepository.save(event);
+
+            List<Booking> bookingWaitlist = bookingRepository.findByEventAndStatusOrderByBookingDateAsc(event, BookingStatus.WAITLIST);
+            for (Booking waiting : bookingWaitlist){
+                if (waiting.getSeatsBooked() <= event.getAvailableSeats())
+                    waiting.setStatus(BookingStatus.CONFIRMED);
+                    event.setAvailableSeats(event.getAvailableSeats() - waiting.getSeatsBooked());
+                    bookingRepository.save(waiting);
+                    eventRepository.save(event);
+                    if (event.getAvailableSeats() == 0) break;
+            }
+        }
+
+       return bookingMapper.toDTO(booking);
+
+    }
+
 
 }
