@@ -7,6 +7,7 @@ import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.Review;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public interface EventMapper {
     @Mapping(source = "organizerId", target = "organizer.id")
     @Mapping(target = "categories", ignore = true)
     Event toEntity(EventRequestDTO dto);
+    void updateEntityFromDTO(EventRequestDTO dto, @MappingTarget Event entity);
 
     @Mapping(source = "venue.name", target = "venueName")
     @Mapping(source = "organizer.username", target = "organizerName")

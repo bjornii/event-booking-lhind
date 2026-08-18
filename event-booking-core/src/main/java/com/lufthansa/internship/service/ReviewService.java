@@ -11,6 +11,7 @@ import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.ReviewRepository;
 import com.lufthansa.internship.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class ReviewService {
     private final BookingRepository bookingRepository;
     private final ReviewMapper reviewMapper;
 
+    @Transactional
     public ReviewResponseDTO leaveReview(ReviewRequestDTO request){
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User does not exist"));
         Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist"));
@@ -40,7 +42,6 @@ public class ReviewService {
         review.setUser(user);
         review.setEvent(event);
         review.setCreatedAt(LocalDateTime.now());
-
 
         Review saved = reviewRepository.save(review);
         return reviewMapper.toDTO(saved);

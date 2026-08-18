@@ -94,7 +94,7 @@ public class BookingService {
             throw new InvalidCancellationRequestException("Cancellation policy does not allow cancelling bookings less than 24hrs before event");
         }
         BookingStatus formerStatus = booking.getStatus();
-        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setStatus(BookingStatus.REFUNDED);
         bookingRepository.save(booking);
 
         if(formerStatus == BookingStatus.CONFIRMED){

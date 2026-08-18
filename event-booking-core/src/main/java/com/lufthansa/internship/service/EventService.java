@@ -2,13 +2,13 @@ package com.lufthansa.internship.service;
 
 import com.lufthansa.internship.dto.request.EventRequestDTO;
 import com.lufthansa.internship.dto.response.EventResponseDTO;
-import com.lufthansa.internship.entity.Category;
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.Venue;
+import com.lufthansa.internship.entity.*;
 import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.EventMapper;
+import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.VenueRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,8 +26,10 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final VenueRepository venueRepository;
+    private final BookingRepository bookingRepository;
 
 
+    @Transactional
     public void validateEventRequest(EventRequestDTO request){
 
         if (request.getEndDateTime().isBefore(request.getStartDateTime())){
@@ -49,8 +50,8 @@ public class EventService {
 
     }
 
+    @Transactional
     public EventResponseDTO createEvent(EventRequestDTO request){
-
         Event e = eventRepository.findByTitle(request.getTitle());
         if (e != null) throw new DuplicateEventTitleException("Event already exists!");
 
@@ -63,6 +64,7 @@ public class EventService {
         return eventMapper.toDTO(saved);
     }
 
+    @Transactional
     public Page<EventResponseDTO> getAllEvents() {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("startDateTime"));
         Page<Event> events = eventRepository.findAll(pageable);
@@ -70,6 +72,7 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    @Transactional
     public Page<EventResponseDTO> getEventsByCategory(List<String> categories, String sortVariable) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
@@ -78,6 +81,7 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    @Transactional
     public Page<EventResponseDTO> getEventsByCity(String city, String sortVariable) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
@@ -87,6 +91,7 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    @Transactional
     public Page<EventResponseDTO> getEventsByDateRange(LocalDateTime fromDate, LocalDateTime toDate, String sortVariable) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
@@ -95,6 +100,7 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    @Transactional
     public Page<EventResponseDTO> getEventsByPriceRange(Double startPrice, Double endPrice, String sortVariable) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
@@ -103,10 +109,43 @@ public class EventService {
         return events.map(eventMapper::toDTO);
     }
 
+    @Transactional
     public EventResponseDTO getSingleEvent(Integer eventId){
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
         return eventMapper.toDTO(event);
     }
+
+    @Transactional
+    public EventResponseDTO updateEvent(Integer eventId, EventRequestDTO request){
+        Event existing = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        Event dupe = eventRepository.findByTitle(request.getTitle());
+        if (dupe != null) throw new DuplicateEventTitleException("Event already exists!");
+
+        validateEventRequest(request);
+
+        eventMapper.updateEntityFromDTO(request, existing);
+        Event saved = eventRepository.save(existing);
+        return eventMapper.toDTO(saved);
+    }
+
+    @Transactional
+    public EventResponseDTO cancelEvent(Integer eventId){
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (event.getStartDateTime().isBefore(LocalDateTime.now())) throw new InvalidCancellationRequestException("Cannot cancel past events");
+        if (!event.getStatus().equals(EventStatus.UPCOMING)) throw new InvalidCancellationRequestException("Can only cancel upcoming events");
+
+        event.setStatus(EventStatus.CANCELLED);
+
+        for(Booking booking : event.getBookings()){
+            if (booking.getStatus().equals(BookingStatus.CONFIRMED)) booking.setStatus(BookingStatus.REFUNDED);
+            if (booking.getStatus().equals(BookingStatus.WAITLIST)) booking.setStatus(BookingStatus.CANCELLED);
+        }
+        bookingRepository.saveAll(event.getBookings());
+        Event saved = eventRepository.save(event);
+        return eventMapper.toDTO(saved);
+
+    }
+
 
 
 }
