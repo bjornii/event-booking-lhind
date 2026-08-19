@@ -105,7 +105,6 @@ public class BookingService {
     @Transactional
     public BookingResponseDTO cancelBooking (Integer bookingId, Integer userId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist!"));
 
         if (!booking.getUser().getId().equals(userId)) throw new UnauthorizedCalcellationException("You can only cancel your own booking");
         if (booking.getStatus() != BookingStatus.CONFIRMED) throw new InvalidCancellationRequestException("Booking cannot be cancelled");
@@ -134,6 +133,40 @@ public class BookingService {
         }
 
        return bookingMapper.toDTO(booking);
+
+    }
+
+    @Transactional
+    public BookingResponseDTO cancelBookingByAdmin (Integer bookingId){
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) throw new InvalidCancellationRequestException("Booking cannot be cancelled");
+
+        Event event = booking.getEvent();
+        if (event.getStartDateTime().minusHours(24).isBefore(LocalDateTime.now())){
+            throw new InvalidCancellationRequestException("Cancellation policy does not allow cancelling bookings less than 24hrs before event");
+        }
+        BookingStatus formerStatus = booking.getStatus();
+        booking.setStatus(BookingStatus.REFUNDED);
+        bookingRepository.save(booking);
+
+        if(formerStatus == BookingStatus.CONFIRMED){
+            event.setAvailableSeats(event.getAvailableSeats() + booking.getSeatsBooked());
+            eventRepository.save(event);
+
+            List<Booking> bookingWaitlist = bookingRepository.findByEventAndStatusOrderByBookingDateAsc(event, BookingStatus.WAITLIST);
+            for (Booking waiting : bookingWaitlist){
+                if (waiting.getSeatsBooked() <= event.getAvailableSeats()) {
+                    waiting.setStatus(BookingStatus.CONFIRMED);
+                    event.setAvailableSeats(event.getAvailableSeats() - waiting.getSeatsBooked());
+                    bookingRepository.save(waiting);
+                    eventRepository.save(event);
+                    if (event.getAvailableSeats() == 0) break;
+                }
+            }
+        }
+
+        return bookingMapper.toDTO(booking);
 
     }
 
