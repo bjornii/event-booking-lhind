@@ -2,6 +2,7 @@ package com.lufthansa.internship.service;
 
 import com.lufthansa.internship.dto.request.BookingRequestDTO;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
+import com.lufthansa.internship.dto.response.EventBookingsDTO;
 import com.lufthansa.internship.entity.Booking;
 import com.lufthansa.internship.entity.BookingStatus;
 import com.lufthansa.internship.entity.Event;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Book;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,6 +70,22 @@ public class BookingService {
 
         return bookings.map(bookingMapper::toDTO);
     }
+
+    @Transactional
+    public List<EventBookingsDTO> viewMyBookingsAsOrganizer(Integer userId){
+
+        List<Event> events = eventRepository.findByOrganizerId(userId);
+
+        return events.stream()
+                .map(event -> {
+                    List<BookingResponseDTO> bookings = bookingRepository.findByEvent(event).stream()
+                            .map(bookingMapper::toDTO)
+                            .toList();
+                    return new EventBookingsDTO(event.getTitle(), bookings);
+                }).toList();
+
+    }
+
     @Transactional
     public Page<BookingResponseDTO> getAllBookings(){
         Pageable pageable = PageRequest.of(0,10, Sort.by("bookingDate"));

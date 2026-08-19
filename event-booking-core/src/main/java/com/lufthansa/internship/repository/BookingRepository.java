@@ -6,6 +6,7 @@ import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +21,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findByEventAndStatusOrderByBookingDateAsc(Event event, BookingStatus bookingStatus);
 
     boolean existsByUserAndEventAndStatus(User user, Event event, BookingStatus bookingStatus);
+
+    List<Booking> findByEvent(Event event);
+
 }
