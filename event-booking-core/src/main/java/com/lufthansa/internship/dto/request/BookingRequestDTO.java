@@ -25,3 +25,6 @@ public class BookingRequestDTO {
     private Integer eventId;
 
 }
+
+
+// FIX UP DT0 CONSTRAINTS

@@ -16,6 +16,9 @@ public interface UserMapper {
     @Mapping(target = "events", ignore = true)
     @Mapping(target = "bookings", ignore = true)
     @Mapping(target = "reviews", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "status", ignore = true)
     User toEntity(UserRegisterRequestDTO dto);
 
     @Mapping(source = "role", target = "role")
