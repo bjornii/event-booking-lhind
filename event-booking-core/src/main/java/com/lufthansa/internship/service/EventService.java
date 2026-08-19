@@ -56,6 +56,10 @@ public class EventService {
             }
         }
 
+        if(venueRepository.findStatusById(request.getVenueId()).equals(VenueStatus.INACTIVE)) {
+            throw new IllegalVenueException("Select available venues");
+        }
+
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.Venue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -17,6 +18,8 @@ public interface VenueMapper {
 
     @Mapping(target = "events", expression = "java(mapEventTitles(venue.getEvents()))")
     VenueResponseDTO toDTO(Venue venue);
+
+    void updateEntityFromDTO(VenueRequestDTO dto, @MappingTarget Venue venue);
 
     default List<String> mapEventTitles(List<Event> events){
         if (events == null) return List.of();

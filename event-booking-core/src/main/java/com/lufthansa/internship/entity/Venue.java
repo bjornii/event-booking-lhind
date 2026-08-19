@@ -29,6 +29,9 @@ public class Venue {
 
     private String capacity;
 
+    @Enumerated(EnumType.STRING)
+    private VenueStatus status;
+
 
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events = new ArrayList<>();
