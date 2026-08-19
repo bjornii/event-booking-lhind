@@ -23,6 +23,9 @@ public class Category {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private CategoryStatus status;
+
     @ManyToMany(mappedBy = "categories")
     private List<Event> events = new ArrayList<>();
 

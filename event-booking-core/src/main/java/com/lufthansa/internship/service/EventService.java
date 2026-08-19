@@ -6,6 +6,7 @@ import com.lufthansa.internship.entity.*;
 import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.EventMapper;
 import com.lufthansa.internship.repository.BookingRepository;
+import com.lufthansa.internship.repository.CategoryRepository;
 import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.VenueRepository;
 import jakarta.transaction.Transactional;
@@ -27,6 +28,7 @@ public class EventService {
     private final EventMapper eventMapper;
     private final VenueRepository venueRepository;
     private final BookingRepository bookingRepository;
+    private final CategoryRepository categoryRepository;
 
 
     @Transactional
@@ -46,6 +48,12 @@ public class EventService {
         }
         if (request.getCategoryIds().isEmpty()) {
             throw new IllegalCategoryException("Category Id list cannot be empty");
+        }
+
+        for (Integer categoryId : request.getCategoryIds()){
+            if(categoryRepository.findStatusById(categoryId).equals(CategoryStatus.INACTIVE)) {
+                throw new IllegalCategoryException("Select available categories");
+            }
         }
 
     }
@@ -116,21 +124,24 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseDTO updateEvent(Integer eventId, EventRequestDTO request){
+    public EventResponseDTO updateEvent(Integer organizerId, Integer eventId, EventRequestDTO request){
         Event existing = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (!organizerId.equals(existing.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only update your own events");
         Event dupe = eventRepository.findByTitle(request.getTitle());
         if (dupe != null) throw new DuplicateEventTitleException("Event already exists!");
 
         validateEventRequest(request);
 
         eventMapper.updateEntityFromDTO(request, existing);
+        existing.setOrganizer(existing.getOrganizer());
         Event saved = eventRepository.save(existing);
         return eventMapper.toDTO(saved);
     }
 
     @Transactional
-    public EventResponseDTO cancelEvent(Integer eventId){
+    public EventResponseDTO cancelEvent(Integer organizerId, Integer eventId){
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (!organizerId.equals(event.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only cancel your own events");
         if (event.getStartDateTime().isBefore(LocalDateTime.now())) throw new InvalidCancellationRequestException("Cannot cancel past events");
         if (!event.getStatus().equals(EventStatus.UPCOMING)) throw new InvalidCancellationRequestException("Can only cancel upcoming events");
 

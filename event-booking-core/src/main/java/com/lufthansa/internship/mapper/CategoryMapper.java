@@ -1,11 +1,13 @@
 package com.lufthansa.internship.mapper;
 
 import com.lufthansa.internship.dto.request.CategoryRequestDTO;
+import com.lufthansa.internship.dto.request.EventRequestDTO;
 import com.lufthansa.internship.dto.response.CategoryResponseDTO;
 import com.lufthansa.internship.entity.Category;
 import com.lufthansa.internship.entity.Event;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -17,6 +19,8 @@ public interface CategoryMapper {
 
     @Mapping(target = "events", expression = "java(mapEventTitles(category.getEvents()))")
     CategoryResponseDTO toDTO(Category category);
+
+    void updateEntityFromDTO(CategoryRequestDTO dto, @MappingTarget Category category);
 
     default List<String> mapEventTitles(List<Event> events){
         if (events == null) return List.of();

@@ -92,6 +92,7 @@ public class BookingService {
         Page<Booking> bookings = bookingRepository.findAll(pageable);
         return bookings.map(bookingMapper::toDTO);
     }
+
     @Transactional
     public Page<BookingResponseDTO> getAllBookingsForEvent(Integer eventId){
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
@@ -100,6 +101,7 @@ public class BookingService {
         Page<Booking> bookings = bookingRepository.findByEvent(event, pageable);
         return bookings.map(bookingMapper::toDTO);
     }
+
     @Transactional
     public BookingResponseDTO cancelBooking (Integer bookingId, Integer userId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
