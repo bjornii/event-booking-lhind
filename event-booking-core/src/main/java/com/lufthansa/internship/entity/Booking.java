@@ -30,6 +30,9 @@ public class Booking {
     @Column(name = "booking_date")
     private LocalDateTime bookingDate;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;

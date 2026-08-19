@@ -18,6 +18,7 @@ public interface UserMapper {
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "lastLogIn", ignore = true)
     @Mapping(target = "status", ignore = true)
     User toEntity(UserRegisterRequestDTO dto);
 
