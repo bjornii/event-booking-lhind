@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
     Category findByName(String name);
@@ -16,4 +18,5 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     CategoryStatus findStatusById(@Param("categoryId") Integer categoryId);
 
 
+    List<Category> findAllByNameIn(List<String> categories);
 }

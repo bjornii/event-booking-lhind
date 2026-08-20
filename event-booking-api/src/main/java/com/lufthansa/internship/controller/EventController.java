@@ -2,25 +2,23 @@ package com.lufthansa.internship.controller;
 
 import com.lufthansa.internship.dto.request.EventRequestDTO;
 import com.lufthansa.internship.dto.response.EventResponseDTO;
-import com.lufthansa.internship.entity.EventVisibility;
 import com.lufthansa.internship.security.AppUserPrincipal;
 import com.lufthansa.internship.service.EventService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @AllArgsConstructor
@@ -36,6 +34,20 @@ public class EventController {
         EventResponseDTO created = eventService.createEvent(authenticatedUser.getId(), request);
         URI location = URI.create("/api/events/" + created.getId());
         return ResponseEntity.created(location).body(created);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<EventResponseDTO>> getAllEvents(@RequestParam(defaultValue = "startDateTime") String sort,
+                                                               @RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "10") int size){
+        Page<EventResponseDTO> events = eventService.getAllEvents(sort, page, size);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/{eventId}")
+    public ResponseEntity<EventResponseDTO> getEventById(@PathVariable Integer eventId) {
+        EventResponseDTO event = eventService.getSingleEvent(eventId);
+        return ResponseEntity.ok(event);
     }
 
     @GetMapping("/category")
@@ -68,7 +80,6 @@ public class EventController {
         Page<EventResponseDTO> events = eventService.getEventsByDateRange(fromDateTime, toDateTime, sort, page, size);
         return ResponseEntity.ok(events);
     }
-
 
     @GetMapping("/priceRange")
     public ResponseEntity<Page<EventResponseDTO>> getEventsByPriceRange(@RequestParam Double start,

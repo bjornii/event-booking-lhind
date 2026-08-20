@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -77,56 +78,56 @@ public class EventService {
     }
 
     @Transactional
-    public Page<EventResponseDTO> getAllEvents() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("startDateTime"));
-        Page<Event> events = eventRepository.findAll(pageable);
+    public Page<EventResponseDTO> getAllEvents(String sortVariable, int page, int size) {
+        if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortVariable));
+        Page<Event> events = eventRepository.findAllByVisibility(EventVisibility.PUBLISHED, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
     public Page<EventResponseDTO> getEventsByCategory(List<String> categories, String sortVariable, int page, int size) {
-        if (sortVariable == null || sortVariable.isEmpty()) {
-            sortVariable = "startDateTime";
-        }
+        if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortVariable));
-        Page<Event> events = eventRepository.findByCategoriesIn(categories, pageable);
+        Page<Event> events = eventRepository.findByVisibilityAndCategories_NameIn(EventVisibility.PUBLISHED, categories, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
     public Page<EventResponseDTO> getEventsByCity(String city, String sortVariable, int page, int size) {
-        if (sortVariable.isEmpty()) sortVariable = "startDateTime";
+        if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
         List<Venue> cityVenues = venueRepository.findByCityIgnoreCase(city);
-        Page<Event> events = eventRepository.findByVenueIn(cityVenues, pageable);
+        Page<Event> events = eventRepository.findByVisibilityAndVenueIn(EventVisibility.PUBLISHED, cityVenues, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
     public Page<EventResponseDTO> getEventsByDateRange(LocalDateTime fromDate, LocalDateTime toDate, String sortVariable, int page, int size) {
-        if (sortVariable.isEmpty()) sortVariable = "startDateTime";
+        if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
-        Page<Event> events = eventRepository.findByStartDateTimeBetween(fromDate, toDate, pageable);
+        Page<Event> events = eventRepository.findByVisibilityAndStartDateTimeBetween(EventVisibility.PUBLISHED, fromDate, toDate, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
     public Page<EventResponseDTO> getEventsByPriceRange(Double startPrice, Double endPrice, String sortVariable, int page, int size) {
-        if (sortVariable.isEmpty()) sortVariable = "startDateTime";
+        if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
-        Page<Event> events = eventRepository.findByPriceBetween(startPrice, endPrice, pageable);
+        Page<Event> events = eventRepository.findByVisibilityAndPriceBetween(EventVisibility.PUBLISHED, startPrice, endPrice, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
     public EventResponseDTO getSingleEvent(Integer eventId){
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        Event event = eventRepository.findByVisibilityAndId(EventVisibility.PUBLISHED, eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
         return eventMapper.toDTO(event);
     }
 
