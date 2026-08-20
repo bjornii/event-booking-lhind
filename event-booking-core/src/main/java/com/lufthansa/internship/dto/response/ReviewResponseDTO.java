@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 public class ReviewResponseDTO {
 
+    private Integer id;
     @NotNull
     private Integer rating;
 

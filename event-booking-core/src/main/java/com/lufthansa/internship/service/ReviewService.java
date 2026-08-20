@@ -5,6 +5,7 @@ import com.lufthansa.internship.dto.response.ReviewResponseDTO;
 import com.lufthansa.internship.entity.*;
 import com.lufthansa.internship.exception.EventNotFoundException;
 import com.lufthansa.internship.exception.InvalidReviewRequestException;
+import com.lufthansa.internship.exception.ReviewNotFoundException;
 import com.lufthansa.internship.exception.UserNotFoundException;
 import com.lufthansa.internship.mapper.ReviewMapper;
 import com.lufthansa.internship.repository.BookingRepository;
@@ -28,8 +29,8 @@ public class ReviewService {
     private final ReviewMapper reviewMapper;
 
     @Transactional
-    public ReviewResponseDTO leaveReview(ReviewRequestDTO request){
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User does not exist"));
+    public ReviewResponseDTO leaveReview(Integer userId, ReviewRequestDTO request){
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist"));
         Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist"));
 
         boolean hasBooking = bookingRepository.existsByUserAndEventAndStatus(user, event, BookingStatus.CONFIRMED);
@@ -45,6 +46,12 @@ public class ReviewService {
 
         Review saved = reviewRepository.save(review);
         return reviewMapper.toDTO(saved);
+    }
+
+    @Transactional
+    public void deleteReview(Integer reviewId){
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException("Review not found"));
+        reviewRepository.delete(review);
     }
 
 }

@@ -22,8 +22,6 @@ public class ReviewRequestDTO {
 
     private String comment;
     @NotNull
-    private Integer userId;
-    @NotNull
     private Integer eventId;
 
 
