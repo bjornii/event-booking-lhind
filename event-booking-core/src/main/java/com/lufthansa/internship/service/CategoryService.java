@@ -6,12 +6,17 @@ import com.lufthansa.internship.entity.Category;
 import com.lufthansa.internship.entity.CategoryStatus;
 import com.lufthansa.internship.exception.CategoryNotFoundException;
 import com.lufthansa.internship.exception.DuplicateCategoryException;
-import com.lufthansa.internship.exception.IllegalCategoryException;
 import com.lufthansa.internship.mapper.CategoryMapper;
 import com.lufthansa.internship.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
@@ -29,28 +34,34 @@ public class CategoryService {
         category.setStatus(CategoryStatus.ACTIVE);
         Category saved = categoryRepository.save(category);
         return categoryMapper.toDTO(saved);
+    }
 
+    @Transactional
+    public Page<CategoryResponseDTO> getAllCategories(Integer page, Integer size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+        Page<Category> categories = categoryRepository.findAll(pageable);
+        return categories.map(categoryMapper::toDTO);
     }
 
     @Transactional
     public CategoryResponseDTO updateCategory(Integer categoryId, CategoryRequestDTO request){
-        Category existing = categoryRepository.findById(categoryId).orElseThrow(()-> new CategoryNotFoundException("Category does not exist"));
+        Category existing = categoryRepository.findByIdAndStatus(categoryId, CategoryStatus.ACTIVE).orElseThrow(()-> new CategoryNotFoundException("Category does not exist"));
 
-        Category dupe = categoryRepository.findByName(request.getName());
+        Category dupe = categoryRepository.findByNameIgnoreCase(request.getName().trim());
         if (dupe != null) throw new DuplicateCategoryException("Category with this name already exists");
 
         categoryMapper.updateEntityFromDTO(request, existing);
-
+        existing.setUpdatedAt(LocalDateTime.now());
         Category saved = categoryRepository.save(existing);
         return categoryMapper.toDTO(saved);
     }
 
     @Transactional
-    public CategoryResponseDTO removeCategory (Integer categoryId){
+    public void removeCategory (Integer categoryId){
         Category category = categoryRepository.findById(categoryId).orElseThrow(()-> new CategoryNotFoundException("Category does not exist"));
         category.setStatus(CategoryStatus.INACTIVE);
-        Category saved = categoryRepository.save(category);
-        return categoryMapper.toDTO(saved);
+        category.setUpdatedAt(LocalDateTime.now());
+        categoryRepository.save(category);
     }
 
 

@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CategoryResponseDTO {
 
+    private Integer id;
     @NotBlank
     private String name;
     @NotNull
