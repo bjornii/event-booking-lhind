@@ -24,6 +24,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewResponseDTO> leaveReview(@AuthenticationPrincipal AppUserPrincipal authenticatedUser, @Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
         ReviewResponseDTO created = reviewService.leaveReview(authenticatedUser.getId(), reviewRequestDTO);
         URI location = URI.create("/api/review/" + created.getId());

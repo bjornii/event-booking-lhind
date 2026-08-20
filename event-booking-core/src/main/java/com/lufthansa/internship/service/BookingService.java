@@ -103,7 +103,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponseDTO cancelBookingByUser (Integer bookingId, Integer userId){
+    public void cancelBookingByUser (Integer bookingId, Integer userId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
 
         if (!booking.getUser().getId().equals(userId)) throw new UnauthorizedCalcellationException("You can only cancel your own booking");
@@ -113,7 +113,7 @@ public class BookingService {
         if (event.getStartDateTime().minusHours(24).isBefore(LocalDateTime.now()))
             throw new InvalidCancellationRequestException("You cannot cancel bookings less than 24 hours before event start");
 
-        return cancelBooking(booking, event);
+        cancelBooking(booking, event);
     }
 
     @Transactional

@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BookingResponseDTO {
 
+    private Integer id;
     @NotNull
     private Integer seatsBooked;
     @NotBlank
