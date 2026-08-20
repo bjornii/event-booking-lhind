@@ -32,6 +32,7 @@ public class CategoryService {
         if (c != null) throw new DuplicateCategoryException("Category already exists");
         Category category = categoryMapper.toEntity(request);
         category.setStatus(CategoryStatus.ACTIVE);
+        category.setCreatedAt(LocalDateTime.now());
         Category saved = categoryRepository.save(category);
         return categoryMapper.toDTO(saved);
     }

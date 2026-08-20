@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class VenueResponseDTO {
 
+    private Integer id;
     @NotBlank
     private String name;
     @NotBlank
