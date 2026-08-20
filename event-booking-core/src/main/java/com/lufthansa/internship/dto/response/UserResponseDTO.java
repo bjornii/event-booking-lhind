@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class UserResponseDTO {
 
+    private Integer id;
     @NotBlank
     private String username;
     @NotBlank

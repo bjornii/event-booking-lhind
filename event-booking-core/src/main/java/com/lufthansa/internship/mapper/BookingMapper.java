@@ -13,6 +13,7 @@ public interface BookingMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "event", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Booking toEntity(BookingRequestDTO dto);
 
     @Mapping(source = "status", target = "status")

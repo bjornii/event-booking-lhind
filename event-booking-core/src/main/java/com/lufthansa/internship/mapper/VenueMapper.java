@@ -14,6 +14,9 @@ import java.util.List;
 public interface VenueMapper {
 
     @Mapping(target = "events", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Venue toEntity(VenueRequestDTO dto);
 
     @Mapping(target = "events", expression = "java(mapEventTitles(venue.getEvents()))")

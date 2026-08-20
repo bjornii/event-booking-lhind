@@ -10,11 +10,17 @@ import com.lufthansa.internship.exception.DuplicateEmailException;
 import com.lufthansa.internship.exception.UserNotFoundException;
 import com.lufthansa.internship.mapper.UserMapper;
 import com.lufthansa.internship.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +30,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public UserResponseDTO createUser(UserRegisterRequestDTO request, UserRole role){
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -43,6 +50,14 @@ public class UserService {
 
     }
 
+    @Transactional
+    public Page<UserResponseDTO> getAllUsers(){
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("firstName"));
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(userMapper::toDTO);
+    }
+
+    @Transactional
     public UserResponseDTO updateUser(Integer userId, UserUpdateDTO dto){
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist"));
 
@@ -63,13 +78,11 @@ public class UserService {
         return userMapper.toDTO(saved);
 
     }
-
-    public UserResponseDTO deactivateUser(Integer userId){
+    @Transactional
+    public void deactivateUser(Integer userId){
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist"));
         user.setStatus(UserStatus.DEACTIVATED);
-        User saved = userRepository.save(user);
-        return userMapper.toDTO(saved);
-
+        userRepository.save(user);
     }
 
 }

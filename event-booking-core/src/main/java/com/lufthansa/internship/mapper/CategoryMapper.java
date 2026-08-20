@@ -15,6 +15,9 @@ import java.util.List;
 public interface CategoryMapper {
 
     @Mapping(target = "events", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Category toEntity(CategoryRequestDTO dto);
 
     @Mapping(target = "events", expression = "java(mapEventTitles(category.getEvents()))")

@@ -20,6 +20,8 @@ public interface EventMapper {
     @Mapping(source = "venueId", target = "venue.id")
     @Mapping(source = "organizerId", target = "organizer.id")
     @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Event toEntity(EventRequestDTO dto);
     void updateEntityFromDTO(EventRequestDTO dto, @MappingTarget Event entity);
 
