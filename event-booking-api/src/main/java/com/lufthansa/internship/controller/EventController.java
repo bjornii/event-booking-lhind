@@ -8,12 +8,19 @@ import com.lufthansa.internship.service.EventService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.apache.coyote.Response;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Locale;
 
 @RestController
 @AllArgsConstructor
@@ -29,6 +36,48 @@ public class EventController {
         EventResponseDTO created = eventService.createEvent(authenticatedUser.getId(), request);
         URI location = URI.create("/api/events/" + created.getId());
         return ResponseEntity.created(location).body(created);
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity<Page<EventResponseDTO>> getEventsByCategory(@RequestParam List<String> category,
+                                                                      @RequestParam(defaultValue = "startDateTime") String sort,
+                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
+        Page<EventResponseDTO> events = eventService.getEventsByCategory(category, sort, page, size);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/city")
+    public ResponseEntity<Page<EventResponseDTO>> getEventsByCity(@RequestParam String city,
+                                                                      @RequestParam(defaultValue = "startDateTime") String sort,
+                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
+        Page<EventResponseDTO> events = eventService.getEventsByCity(city, sort, page, size);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/dateRange")
+    public ResponseEntity<Page<EventResponseDTO>> getEventsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+                                                                       @RequestParam(defaultValue = "startDateTime") String sort,
+                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "10") int size) {
+        LocalDateTime fromDateTime = from.atStartOfDay();
+        LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+
+        Page<EventResponseDTO> events = eventService.getEventsByDateRange(fromDateTime, toDateTime, sort, page, size);
+        return ResponseEntity.ok(events);
+    }
+
+
+    @GetMapping("/priceRange")
+    public ResponseEntity<Page<EventResponseDTO>> getEventsByPriceRange(@RequestParam Double start,
+                                                                        @RequestParam Double end,
+                                                                        @RequestParam(defaultValue = "startDateTime") String sort,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size) {
+        Page<EventResponseDTO> events = eventService.getEventsByPriceRange(start, end, sort, page, size);
+        return ResponseEntity.ok(events);
     }
 
     @PatchMapping("/publish/{eventId}")

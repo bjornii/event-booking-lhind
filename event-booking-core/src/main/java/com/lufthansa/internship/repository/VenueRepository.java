@@ -22,4 +22,5 @@ public interface VenueRepository extends JpaRepository<Venue, Integer> {
     @Query("SELECT v.status FROM Venue v WHERE v.id = :venueId")
     VenueStatus findStatusById(@Param("venueId") Integer venueId);
 
+    List<Venue> findByCityIgnoreCase(String city);
 }

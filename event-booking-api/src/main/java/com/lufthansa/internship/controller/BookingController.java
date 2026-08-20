@@ -3,6 +3,7 @@ package com.lufthansa.internship.controller;
 
 import com.lufthansa.internship.dto.request.BookingRequestDTO;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
+import com.lufthansa.internship.dto.response.EventBookingsDTO;
 import com.lufthansa.internship.security.AppUserPrincipal;
 import com.lufthansa.internship.service.BookingService;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -33,13 +35,18 @@ public class BookingController {
 
 
     @GetMapping("/myBookings")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<BookingResponseDTO>> getMyBookings(@AuthenticationPrincipal AppUserPrincipal authenticatedUser,
                                                                   @Valid @RequestParam(defaultValue = "bookingDate") String sortVariable) {
-
         return ResponseEntity.ok(bookingService.viewMyBookings(authenticatedUser.getId(), sortVariable));
     }
 
     @GetMapping()
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<List<EventBookingsDTO>> viewMyBookingsAsOrganizer (@AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        List<EventBookingsDTO> bookings = bookingService.getMyBookingsAsOrganizer(authenticatedUser.getId());
+        return ResponseEntity.ok(bookings);
+    }
 
     @DeleteMapping("/{bookingId}")
     @PreAuthorize("isAuthenticated()")

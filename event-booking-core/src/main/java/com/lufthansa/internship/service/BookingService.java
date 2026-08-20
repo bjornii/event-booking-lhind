@@ -72,7 +72,7 @@ public class BookingService {
     }
 
     @Transactional
-    public List<EventBookingsDTO> viewMyBookingsAsOrganizer(Integer userId){
+    public List<EventBookingsDTO> getMyBookingsAsOrganizer(Integer userId){
 
         List<Event> events = eventRepository.findByOrganizerId(userId);
 

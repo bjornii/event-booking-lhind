@@ -85,26 +85,29 @@ public class EventService {
     }
 
     @Transactional
-    public Page<EventResponseDTO> getEventsByCategory(List<String> categories, String sortVariable) {
-        if (sortVariable.isEmpty()) sortVariable = "startDateTime";
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
+    public Page<EventResponseDTO> getEventsByCategory(List<String> categories, String sortVariable, int page, int size) {
+        if (sortVariable == null || sortVariable.isEmpty()) {
+            sortVariable = "startDateTime";
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortVariable));
         Page<Event> events = eventRepository.findByCategoriesIn(categories, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
-    public Page<EventResponseDTO> getEventsByCity(String city, String sortVariable) {
+    public Page<EventResponseDTO> getEventsByCity(String city, String sortVariable, int page, int size) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
-        List<Venue> cityVenues = venueRepository.findByCity(city);
+        List<Venue> cityVenues = venueRepository.findByCityIgnoreCase(city);
         Page<Event> events = eventRepository.findByVenueIn(cityVenues, pageable);
 
         return events.map(eventMapper::toDTO);
     }
 
     @Transactional
-    public Page<EventResponseDTO> getEventsByDateRange(LocalDateTime fromDate, LocalDateTime toDate, String sortVariable) {
+    public Page<EventResponseDTO> getEventsByDateRange(LocalDateTime fromDate, LocalDateTime toDate, String sortVariable, int page, int size) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
         Page<Event> events = eventRepository.findByStartDateTimeBetween(fromDate, toDate, pageable);
@@ -113,7 +116,7 @@ public class EventService {
     }
 
     @Transactional
-    public Page<EventResponseDTO> getEventsByPriceRange(Double startPrice, Double endPrice, String sortVariable) {
+    public Page<EventResponseDTO> getEventsByPriceRange(Double startPrice, Double endPrice, String sortVariable, int page, int size) {
         if (sortVariable.isEmpty()) sortVariable = "startDateTime";
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable));
         Page<Event> events = eventRepository.findByPriceBetween(startPrice, endPrice, pageable);
