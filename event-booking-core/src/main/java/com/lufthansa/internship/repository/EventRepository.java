@@ -25,4 +25,6 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     Page<Event> findByPriceBetween(Double startPrice, Double endPrice, Pageable pageable);
 
     List<Event> findByOrganizerId(Integer userId);
+
+    boolean existsEventByTitle(String title);
 }

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/booking")
+@RequestMapping("/api/bookings")
 @AllArgsConstructor
 public class BookingController {
 
@@ -38,6 +38,8 @@ public class BookingController {
 
         return ResponseEntity.ok(bookingService.viewMyBookings(authenticatedUser.getId(), sortVariable));
     }
+
+    @GetMapping()
 
     @DeleteMapping("/{bookingId}")
     @PreAuthorize("isAuthenticated()")

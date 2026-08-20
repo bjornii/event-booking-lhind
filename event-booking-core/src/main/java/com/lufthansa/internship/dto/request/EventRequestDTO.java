@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -18,9 +19,9 @@ public class EventRequestDTO {
     @NotBlank
     private String description;
     @NotNull
-    private LocalDate startDateTime;
+    private LocalDateTime startDateTime;
     @NotNull
-    private LocalDate endDateTime;
+    private LocalDateTime endDateTime;
     @NotNull
     private Double price;
     @NotNull
@@ -29,8 +30,6 @@ public class EventRequestDTO {
     private Integer availableSeats;
     @NotNull
     private Integer venueId;
-    @NotNull
-    private Integer organizerId;
     @NotNull
     private List<Integer> categoryIds;
 

@@ -19,6 +19,7 @@ public interface EventMapper {
     @Mapping(target = "reviews", ignore = true)
     @Mapping(source = "venueId", target = "venue.id")
     @Mapping(source = "organizerId", target = "organizer.id")
+    @Mapping(target = "visibility", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

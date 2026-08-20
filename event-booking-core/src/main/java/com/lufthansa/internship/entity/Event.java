@@ -44,6 +44,9 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private EventVisibility visibility;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

@@ -5,10 +5,7 @@ import com.lufthansa.internship.dto.response.EventResponseDTO;
 import com.lufthansa.internship.entity.*;
 import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.EventMapper;
-import com.lufthansa.internship.repository.BookingRepository;
-import com.lufthansa.internship.repository.CategoryRepository;
-import com.lufthansa.internship.repository.EventRepository;
-import com.lufthansa.internship.repository.VenueRepository;
+import com.lufthansa.internship.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,10 +26,11 @@ public class EventService {
     private final VenueRepository venueRepository;
     private final BookingRepository bookingRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
 
     @Transactional
-    public void validateEventRequest(EventRequestDTO request){
+    public void validateEventRequest(Integer organizerId, EventRequestDTO request){
 
         if (request.getEndDateTime().isBefore(request.getStartDateTime())){
             throw new IllegalDateTimeExcpetion("Start date should be before End date");
@@ -43,7 +41,7 @@ public class EventService {
         if (request.getPrice() < 0){
             throw new IllegalPriceException("Price can NOT be negative");
         }
-        if (request.getVenueId() <= 0 || request.getOrganizerId() <= 0){
+        if (request.getVenueId() <= 0 || organizerId <= 0){
             throw new IllegalIdException("Venue ID and Organizer ID must be positive");
         }
         if (request.getCategoryIds().isEmpty()) {
@@ -63,13 +61,15 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseDTO createEvent(EventRequestDTO request){
+    public EventResponseDTO createEvent(Integer organizerId, EventRequestDTO request){
         Event e = eventRepository.findByTitle(request.getTitle());
         if (e != null) throw new DuplicateEventTitleException("Event already exists!");
-
-        validateEventRequest(request);
+        User organizer = userRepository.findById(organizerId).orElseThrow(() -> new UserNotFoundException("User not found!"));
+        validateEventRequest(organizerId, request);
 
         Event event = eventMapper.toEntity(request);
+        event.setOrganizer(organizer);
+        event.setVisibility(EventVisibility.UNLISTED);
 
         Event saved = eventRepository.save(event);
 
@@ -129,21 +129,56 @@ public class EventService {
 
     @Transactional
     public EventResponseDTO updateEvent(Integer organizerId, Integer eventId, EventRequestDTO request){
-        Event existing = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
-        if (!organizerId.equals(existing.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only update your own events");
-        Event dupe = eventRepository.findByTitle(request.getTitle());
-        if (dupe != null) throw new DuplicateEventTitleException("Event already exists!");
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (!organizerId.equals(event.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only update your own events");
+        if (eventRepository.existsEventByTitle(request.getTitle())) throw new DuplicateEventTitleException("Event already exists!");
+        Venue venue = venueRepository.findById(request.getVenueId()).orElseThrow(() -> new VenueNotFoundException("Venue not found"));
+        List<Category> categories = categoryRepository.findAllById(request.getCategoryIds()).stream().toList();
 
-        validateEventRequest(request);
+        validateEventRequest(organizerId, request);
 
-        eventMapper.updateEntityFromDTO(request, existing);
-        existing.setOrganizer(existing.getOrganizer());
-        Event saved = eventRepository.save(existing);
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getStartDateTime() != null) event.setStartDateTime(request.getStartDateTime());
+        if (request.getEndDateTime() != null) event.setEndDateTime(request.getEndDateTime());
+        if (request.getPrice() != null) event.setPrice(request.getPrice());
+        if (request.getTotalSeats() != null) event.setTotalSeats(request.getTotalSeats());
+        if (request.getAvailableSeats() != null) event.setAvailableSeats(request.getAvailableSeats());
+        if (request.getVenueId() != null) event.setVenue(venue);
+        if (request.getCategoryIds() != null) event.setCategories(categories);
+
+        eventMapper.updateEntityFromDTO(request, event);
+        event.setUpdatedAt(LocalDateTime.now());
+        event.setOrganizer(event.getOrganizer());
+
+        Event saved = eventRepository.save(event);
         return eventMapper.toDTO(saved);
     }
 
     @Transactional
-    public EventResponseDTO cancelEvent(Integer organizerId, Integer eventId){
+    public EventResponseDTO publishEvent(Integer organizerId, Integer eventId){
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (!organizerId.equals(event.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only update your own events");
+        event.setVisibility(EventVisibility.PUBLISHED);
+        event.setUpdatedAt(LocalDateTime.now());
+        event.setOrganizer(event.getOrganizer());
+        Event saved = eventRepository.save(event);
+        return eventMapper.toDTO(saved);
+    }
+
+    @Transactional
+    public EventResponseDTO unlistEvent(Integer organizerId, Integer eventId){
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
+        if (!organizerId.equals(event.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only update your own events");
+        event.setVisibility(EventVisibility.UNLISTED);
+        event.setUpdatedAt(LocalDateTime.now());
+        event.setOrganizer(event.getOrganizer());
+        Event saved = eventRepository.save(event);
+        return eventMapper.toDTO(saved);
+    }
+
+    @Transactional
+    public void cancelEvent(Integer organizerId, Integer eventId){
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does NOT exist!"));
         if (!organizerId.equals(event.getOrganizer().getId())) throw new UnauthorizedUpdateEventException("You can only cancel your own events");
         if (event.getStartDateTime().isBefore(LocalDateTime.now())) throw new InvalidCancellationRequestException("Cannot cancel past events");
@@ -156,8 +191,7 @@ public class EventService {
             if (booking.getStatus().equals(BookingStatus.WAITLIST)) booking.setStatus(BookingStatus.CANCELLED);
         }
         bookingRepository.saveAll(event.getBookings());
-        Event saved = eventRepository.save(event);
-        return eventMapper.toDTO(saved);
+        eventRepository.save(event);
 
     }
 

@@ -16,10 +16,8 @@ import java.net.URI;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/review")
+@RequestMapping("/api/reviews")
 public class ReviewController {
-
-    //pass userAppUserPrincipal as default for user id
 
     private final ReviewService reviewService;
 
