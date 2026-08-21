@@ -9,6 +9,7 @@ import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.User;
 import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.BookingMapper;
+import com.lufthansa.internship.notification.BookingEventPublisher;
 import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.UserRepository;
@@ -34,6 +35,7 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final BookingEventPublisher publisher;
 
     @Transactional
     public BookingResponseDTO createBooking(BookingRequestDTO request){
@@ -60,6 +62,7 @@ public class BookingService {
 //        MAYBE RETURN CHECK BACK LATER IF NO MORE AVAILABLE SEATS AND CURRENT BOOKING THAT OCCUPIES LAST SEATS IS NOT CONFIRMED YET
 
         Booking saved = bookingRepository.save(booking);
+        publisher.notifyBookingCreated(saved);
         return bookingMapper.toDTO(saved);
 
     }
@@ -128,7 +131,8 @@ public class BookingService {
         BookingStatus formerStatus = booking.getStatus();
         booking.setStatus(BookingStatus.REFUNDED);
         booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        publisher.notifyBookingCancelled(saved);
 
         if(formerStatus == BookingStatus.CONFIRMED){
             event.setAvailableSeats(event.getAvailableSeats() + booking.getSeatsBooked());

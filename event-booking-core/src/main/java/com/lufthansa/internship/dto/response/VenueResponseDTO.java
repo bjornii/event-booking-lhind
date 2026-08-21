@@ -1,6 +1,5 @@
 package com.lufthansa.internship.dto.response;
 
-import com.lufthansa.internship.entity.CategoryStatus;
 import com.lufthansa.internship.entity.VenueStatus;
 import jakarta.validation.constraints.*;
 import lombok.*;

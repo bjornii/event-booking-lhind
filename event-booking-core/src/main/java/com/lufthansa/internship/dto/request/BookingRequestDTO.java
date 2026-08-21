@@ -1,9 +1,5 @@
 package com.lufthansa.internship.dto.request;
 
-import com.lufthansa.internship.entity.BookingStatus;
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.User;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

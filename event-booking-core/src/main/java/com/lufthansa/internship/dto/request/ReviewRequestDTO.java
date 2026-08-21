@@ -1,10 +1,5 @@
 package com.lufthansa.internship.dto.request;
 
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.*;
 import lombok.*;
 

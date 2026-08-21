@@ -3,7 +3,6 @@ package com.lufthansa.internship.dto.response;
 import com.lufthansa.internship.entity.UserRole;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 

@@ -1,9 +1,5 @@
 package com.lufthansa.internship.dto.response;
 
-import com.lufthansa.internship.entity.BookingStatus;
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.User;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
