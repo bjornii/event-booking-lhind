@@ -1,15 +1,16 @@
 package com.lufthansa.internship.service;
 
 import com.lufthansa.internship.dto.request.BookingRequestDTO;
+import com.lufthansa.internship.dto.request.BookingWithPaymentRequestDTO;
+import com.lufthansa.internship.dto.request.PaymentRequestDTO;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
 import com.lufthansa.internship.dto.response.EventBookingsDTO;
-import com.lufthansa.internship.entity.Booking;
-import com.lufthansa.internship.entity.BookingStatus;
-import com.lufthansa.internship.entity.Event;
-import com.lufthansa.internship.entity.User;
+import com.lufthansa.internship.dto.response.PaymentResponseDTO;
+import com.lufthansa.internship.entity.*;
 import com.lufthansa.internship.exception.*;
 import com.lufthansa.internship.mapper.BookingMapper;
 import com.lufthansa.internship.notification.BookingEventPublisher;
+import com.lufthansa.internship.notification.BookingNotificationEvent;
 import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.UserRepository;
@@ -34,38 +35,37 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
     private final BookingEventPublisher publisher;
+    private final PaymentService paymentService;
+    private final BookingTransactionService bookingTransactionService;
 
     @Transactional
-    public BookingResponseDTO createBooking(BookingRequestDTO request){
-        Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User does not exist!"));
+    public BookingResponseDTO createBooking(BookingWithPaymentRequestDTO request){
+
         if (request.getSeatsBooked() > 6){
             throw new SeatLimitExceedingException("Cannot book more than 6 seats per booking");
         }
+        Booking booking = bookingTransactionService.createInitialBooking(request);
 
-        Booking booking = bookingMapper.toEntity(request);
-        booking.setBookingDate(LocalDateTime.now());
-        booking.setUser(user);
-        booking.setEvent(event);
+        if (booking.getStatus() == BookingStatus.PENDING_PAYMENT) {
+            PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
+                    .bookingId(booking.getId())
+                    .amount(request.getAmount())
+                    .type(request.getPaymentType())
+                    .cardLastFour(request.getCardLastFour())
+                    .cardBrand(request.getCardBrand())
+                    .build();
 
-        if (request.getSeatsBooked() <= event.getAvailableSeats()){
-            booking.setStatus(BookingStatus.CONFIRMED);
-            event.setAvailableSeats(event.getAvailableSeats() - request.getSeatsBooked());
-            eventRepository.save(event);
-        } else {
-            booking.setStatus(BookingStatus.WAITLIST);
+            PaymentResponseDTO paymentResponse = paymentService.processPayment(paymentRequest);
+            boolean success = paymentResponse.getStatus() == PaymentStatus.SUCCESS;
+
+            booking = bookingTransactionService.finalizeBooking(booking.getId(), success);
         }
 
-//        SHOULD BE SET TO CONFIRMED AFTER PAYMENT CONFIRMED,
-//        MAYBE RETURN CHECK BACK LATER IF NO MORE AVAILABLE SEATS AND CURRENT BOOKING THAT OCCUPIES LAST SEATS IS NOT CONFIRMED YET
-
-        Booking saved = bookingRepository.save(booking);
-        publisher.notifyBookingCreated(saved);
-        return bookingMapper.toDTO(saved);
-
+        publisher.notifyBookingCreated(BookingNotificationEvent.from(booking));
+        return bookingMapper.toDTO(booking);
     }
+
     @Transactional
     public Page<BookingResponseDTO> viewMyBookings(Integer userId, String sortVariable){
         Pageable pageable = PageRequest.of(0, 10, Sort.by(sortVariable).descending());
@@ -132,7 +132,7 @@ public class BookingService {
         booking.setStatus(BookingStatus.REFUNDED);
         booking.setUpdatedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
-        publisher.notifyBookingCancelled(saved);
+        publisher.notifyBookingCancelled(BookingNotificationEvent.from(saved));
 
         if(formerStatus == BookingStatus.CONFIRMED){
             event.setAvailableSeats(event.getAvailableSeats() + booking.getSeatsBooked());

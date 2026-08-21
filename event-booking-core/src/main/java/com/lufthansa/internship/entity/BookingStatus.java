@@ -2,7 +2,7 @@ package com.lufthansa.internship.entity;
 
 public enum BookingStatus {
     WAITLIST,
-    PENDING,
+    PENDING_PAYMENT,
     CONFIRMED,
     FAILED,
     CANCELLED,

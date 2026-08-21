@@ -6,6 +6,9 @@ import com.lufthansa.internship.entity.Venue;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -39,4 +42,15 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     Page<Event> findByVisibilityAndPriceBetween(EventVisibility eventVisibility, Double startPrice, Double endPrice, Pageable pageable);
 
     Optional<Event> findByVisibilityAndId(EventVisibility eventVisibility, Integer eventId);
+
+    @Modifying
+    @Query("UPDATE Event e SET e.availableSeats = e.availableSeats - :seats " +
+            "WHERE e.id = :eventId AND e.availableSeats >= :seats")
+    int tryReserveSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);
+
+    @Modifying
+    @Query("UPDATE Event e SET e.availableSeats = e.availableSeats + :seats " +
+            "WHERE e.id = :eventId")
+    void releaseSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);
+
 }

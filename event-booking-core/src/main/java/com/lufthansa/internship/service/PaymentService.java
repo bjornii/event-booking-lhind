@@ -1,0 +1,64 @@
+package com.lufthansa.internship.service;
+
+import com.lufthansa.internship.dto.request.PaymentRequestDTO;
+import com.lufthansa.internship.dto.response.PaymentResponseDTO;
+import com.lufthansa.internship.entity.Booking;
+import com.lufthansa.internship.entity.Payment;
+import com.lufthansa.internship.entity.PaymentStatus;
+import com.lufthansa.internship.exception.BookingNotFoundException;
+import com.lufthansa.internship.exception.UnsupportedPaymentTypeException;
+import com.lufthansa.internship.payment.PaymentStrategy;
+import com.lufthansa.internship.repository.BookingRepository;
+import com.lufthansa.internship.repository.PaymentRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@Service
+@AllArgsConstructor
+public class PaymentService {
+
+    private final PaymentRepository paymentRepository;
+    private final BookingRepository bookingRepository;
+    private final Map<String, PaymentStrategy> strategies;
+
+    public PaymentResponseDTO processPayment(PaymentRequestDTO request) {
+        PaymentStrategy strategy = strategies.get(request.getType().name().toLowerCase());
+        if (strategy == null) {
+            throw new UnsupportedPaymentTypeException("No strategy for payment type: " + request.getType());
+        }
+        Booking booking = bookingRepository.findById(request.getBookingId()).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        Payment payment = new Payment();
+        payment.setBooking(booking);
+        payment.setAmount(request.getAmount());
+        payment.setPaymentType(request.getType());
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setCardLastFour(request.getCardLastFour());
+        payment.setCardBrand(request.getCardBrand());
+        payment.setCreatedAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+
+        try {
+            strategy.pay(request.getAmount());
+            payment.setStatus(PaymentStatus.SUCCESS);
+        } catch (Exception e) {
+            payment.setStatus(PaymentStatus.FAILED);
+        }
+
+        Payment saved = paymentRepository.save(payment);
+        return PaymentResponseDTO.builder()
+                .id(saved.getId())
+                .amount(saved.getAmount())
+                .paymentType(saved.getPaymentType())
+                .status(saved.getStatus())
+                .cardLastFour(saved.getCardLastFour())
+                .cardBrand(saved.getCardBrand())
+                .bookingId(saved.getBooking().getId())
+                .build();
+    }
+
+}

@@ -41,4 +41,7 @@ public class Booking {
     @JoinColumn(name = "event_id", referencedColumnName = "id")
     private Event event;
 
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+    private Payment payment;
+
 }

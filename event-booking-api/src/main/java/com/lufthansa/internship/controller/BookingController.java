@@ -1,7 +1,7 @@
 package com.lufthansa.internship.controller;
 
 
-import com.lufthansa.internship.dto.request.BookingRequestDTO;
+import com.lufthansa.internship.dto.request.BookingWithPaymentRequestDTO;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
 import com.lufthansa.internship.dto.response.EventBookingsDTO;
 import com.lufthansa.internship.security.AppUserPrincipal;
@@ -26,7 +26,7 @@ public class BookingController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingRequestDTO request){
+    public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingWithPaymentRequestDTO request){
         BookingResponseDTO created = bookingService.createBooking(request);
         URI location = URI.create("/api/booking/" + created.getId());
         return ResponseEntity.created(location).body(created);
