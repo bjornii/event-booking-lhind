@@ -42,6 +42,7 @@ public class ReviewService {
         Review review = reviewMapper.toEntity(request);
         review.setUser(user);
         review.setEvent(event);
+        review.setComment((request.getComment()));
         review.setCreatedAt(LocalDateTime.now());
 
         Review saved = reviewRepository.save(review);

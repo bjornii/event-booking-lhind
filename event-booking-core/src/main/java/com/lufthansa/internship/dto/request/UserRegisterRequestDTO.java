@@ -1,8 +1,6 @@
 package com.lufthansa.internship.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Builder
@@ -12,18 +10,19 @@ import lombok.*;
 @NoArgsConstructor
 public class UserRegisterRequestDTO {
 
-    @NotBlank
+    @NotBlank @Size(min = 2, max = 30)
     private String firstName;
-    @NotBlank
+    @NotBlank @Size(min = 2, max = 30)
     private String lastName;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 20)
     private String username;
-    @Email
+    @NotBlank @Email
     private String email;
-    @NotBlank
+    @NotBlank  @Pattern(regexp = "\\+?[0-9]{10,15}", message = "Invalid phone number")
     private String phoneNumber;
-    @NotBlank
+    @NotBlank @Size(min = 8, max = 64)
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
+            message = "Password must contain upper, lower, digit, and special character")
     private String password;
-
 
 }

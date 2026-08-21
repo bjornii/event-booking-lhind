@@ -4,8 +4,7 @@ import com.lufthansa.internship.entity.BookingStatus;
 import com.lufthansa.internship.entity.Event;
 import com.lufthansa.internship.entity.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -16,17 +15,17 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookingResponseDTO {
-
+    @Positive
     private Integer id;
-    @NotNull
+    @NotNull @Min(1)
     private Integer seatsBooked;
     @NotBlank
     private String status;
     @NotNull
     private LocalDate bookingDate;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String userName;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String eventName;
 
 }

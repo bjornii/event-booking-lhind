@@ -1,7 +1,6 @@
 package com.lufthansa.internship.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Builder
@@ -11,14 +10,15 @@ import lombok.*;
 @NoArgsConstructor
 public class ReviewResponseDTO {
 
+    @Positive
     private Integer id;
-    @NotNull
+    @NotNull @Min(1) @Max(5)
     private Integer rating;
-
+    @NotNull @Size(max = 300)
     private String comment;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String userName;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String eventName;
 
 }

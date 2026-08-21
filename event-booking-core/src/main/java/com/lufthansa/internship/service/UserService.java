@@ -66,10 +66,10 @@ public class UserService {
         if (dto.getUsername() != null && userRepository.existsByUsername(dto.getUsername()))
             throw new DuplicateEmailException("Username already exists");
 
-        if (dto.getUsername() != null) user.setUsername(dto.getUsername());
+        if (dto.getUsername() != null) user.setUsername(dto.getUsername().trim());
         if (dto.getPassword() != null) user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
-        if (dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber());
+        if (dto.getEmail() != null) user.setEmail(dto.getEmail().trim());
+        if (dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber().trim());
         if (dto.getRole() != null) user.setRole(dto.getRole());
         if (dto.getStatus() != null) user.setStatus(dto.getStatus());
         user.setUpdatedAt(LocalDateTime.now());

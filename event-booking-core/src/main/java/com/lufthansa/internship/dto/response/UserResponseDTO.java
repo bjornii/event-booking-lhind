@@ -1,8 +1,9 @@
 package com.lufthansa.internship.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.lufthansa.internship.entity.UserRole;
+import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
@@ -12,14 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDTO {
-
+    @Positive
     private Integer id;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String username;
-    @NotBlank
+    @NotBlank @Email
     private String email;
     @NotBlank
-    private String role;
+    private UserRole role;
     @NotNull
     private List<String> events;
     @NotNull

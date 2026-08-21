@@ -5,7 +5,7 @@ import com.lufthansa.internship.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,12 +17,15 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ReviewRequestDTO {
 
-    @NotNull
+    @NotNull @Min(1) @Max(5)
     private Integer rating;
-
+    @NotNull @Size(max = 300)
     private String comment;
-    @NotNull
+    @NotNull @Positive
     private Integer eventId;
 
+    public String getComment() {
+        return (comment == null || comment.trim().isEmpty()) ? "" : comment.trim();
+    }
 
 }

@@ -1,11 +1,7 @@
 package com.lufthansa.internship.controller;
 
 import com.lufthansa.internship.dto.request.CategoryRequestDTO;
-import com.lufthansa.internship.dto.request.UserRegisterRequestDTO;
-import com.lufthansa.internship.dto.request.UserUpdateDTO;
 import com.lufthansa.internship.dto.response.CategoryResponseDTO;
-import com.lufthansa.internship.dto.response.UserResponseDTO;
-import com.lufthansa.internship.entity.UserRole;
 import com.lufthansa.internship.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,6 @@
 package com.lufthansa.internship.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -14,23 +13,23 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventRequestDTO {
-    @NotBlank
+    @NotBlank @Size(min=3)
     private String title;
-    @NotBlank
+    @NotBlank @Size(min=6)
     private String description;
     @NotNull
     private LocalDateTime startDateTime;
     @NotNull
     private LocalDateTime endDateTime;
-    @NotNull
+    @NotNull @PositiveOrZero
     private Double price;
-    @NotNull
+    @NotNull @Positive
     private Integer totalSeats;
-    @NotNull
+    @NotNull @PositiveOrZero
     private Integer availableSeats;
-    @NotNull
+    @NotNull @Positive
     private Integer venueId;
-    @NotNull
+    @NotNull @Size(min=1)
     private List<Integer> categoryIds;
 
 }

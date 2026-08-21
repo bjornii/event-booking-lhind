@@ -2,6 +2,8 @@ package com.lufthansa.internship.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Builder
@@ -11,7 +13,11 @@ import lombok.*;
 @NoArgsConstructor
 public class LoginRequestDTO {
 
-    @Email private String email;
-    @NotBlank private String password;
+    @NotBlank @Email private String email;
+
+    @NotBlank @Size(min = 8, max = 64)
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
+            message = "Password must contain upper, lower, digit, and special character")
+    private String password;
 
 }

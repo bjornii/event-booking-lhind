@@ -6,6 +6,7 @@ import com.lufthansa.internship.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -19,12 +20,9 @@ public class BookingRequestDTO {
 
     @NotNull @Min(1)
     private Integer seatsBooked;
-    @NotNull
+    @NotNull @Positive
     private Integer userId;
-    @NotNull
+    @NotNull @Positive
     private Integer eventId;
 
 }
-
-
-// FIX UP DT0 CONSTRAINTS

@@ -18,4 +18,6 @@ public interface ReviewMapper {
     @Mapping(source = "event.title", target = "eventName")
     ReviewResponseDTO toDTO(Review review);
 
+
+
 }

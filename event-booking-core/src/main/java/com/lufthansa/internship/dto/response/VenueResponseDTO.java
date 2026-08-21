@@ -2,8 +2,7 @@ package com.lufthansa.internship.dto.response;
 
 import com.lufthansa.internship.entity.CategoryStatus;
 import com.lufthansa.internship.entity.VenueStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.List;
@@ -15,16 +14,17 @@ import java.util.List;
 @NoArgsConstructor
 public class VenueResponseDTO {
 
+    @Positive
     private Integer id;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 30)
     private String name;
-    @NotBlank
+    @NotBlank @Size(min = 4, max = 50)
     private String address;
-    @NotBlank
+    @NotBlank @Size(min = 3, max = 30)
     private String city;
     @NotNull
     private VenueStatus status;
-    @NotBlank
+    @NotBlank @Min(1)
     private String capacity;
     @NotNull
     private List<String> events;
