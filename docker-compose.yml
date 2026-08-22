@@ -1,4 +1,15 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_DATABASE: event_booking_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
   spring-app:
     image: my-spring-app:latest
     container_name: spring-app
@@ -6,3 +17,8 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data:
