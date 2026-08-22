@@ -14,6 +14,7 @@ import com.lufthansa.internship.mapper.UserMapper;
 import com.lufthansa.internship.repository.UserRepository;
 import com.lufthansa.internship.security.jwt.JwtService;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,15 +26,25 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-@AllArgsConstructor
 public class AuthService implements UserDetailsService{
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtService jwtService;
-
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+
+    public AuthService(@Lazy AuthenticationManager authenticationManager,
+                       UserRepository userRepository,
+                       JwtService jwtService,
+                       PasswordEncoder passwordEncoder,
+                       UserMapper userMapper) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

@@ -9,7 +9,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ReviewMapper {
 
-    @Mapping(source = "userId", target = "user.id")
     @Mapping(source = "eventId", target = "event.id")
     @Mapping(target = "createdAt", ignore = true)
     Review toEntity(ReviewRequestDTO dto);

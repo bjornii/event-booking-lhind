@@ -49,8 +49,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     int tryReserveSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);
 
     @Modifying
-    @Query("UPDATE Event e SET e.availableSeats = e.availableSeats + :seats " +
-            "WHERE e.id = :eventId")
+    @Query(value = "UPDATE events SET available_seats = available_seats + :seats " +
+            "WHERE id = :eventId", nativeQuery = true)
     void releaseSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);
+
 
 }
