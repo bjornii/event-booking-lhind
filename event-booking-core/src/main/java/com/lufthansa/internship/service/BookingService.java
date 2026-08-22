@@ -1,6 +1,5 @@
 package com.lufthansa.internship.service;
 
-import com.lufthansa.internship.dto.request.BookingRequestDTO;
 import com.lufthansa.internship.dto.request.BookingWithPaymentRequestDTO;
 import com.lufthansa.internship.dto.request.PaymentRequestDTO;
 import com.lufthansa.internship.dto.response.BookingResponseDTO;
@@ -13,7 +12,6 @@ import com.lufthansa.internship.notification.BookingEventPublisher;
 import com.lufthansa.internship.notification.BookingNotificationEvent;
 import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.EventRepository;
-import com.lufthansa.internship.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,11 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Book;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -90,14 +85,14 @@ public class BookingService {
     }
 
     @Transactional
-    public Page<BookingResponseDTO> getAllBookings(){
-        Pageable pageable = PageRequest.of(0,10, Sort.by("bookingDate"));
+    public Page<BookingResponseDTO> getAllBookings(String sort, Integer page, Integer size){
+        Pageable pageable = PageRequest.of(page,size, Sort.by(sort));
         Page<Booking> bookings = bookingRepository.findAll(pageable);
         return bookings.map(bookingMapper::toDTO);
     }
 
     @Transactional
-    public Page<BookingResponseDTO> getAllBookingsForEvent(Integer eventId){
+    public Page<BookingResponseDTO> getAllBookingsForEvent(Integer eventId, String sort, Integer page, Integer size){
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
 
         Pageable pageable = PageRequest.of(0,10, Sort.by("bookingDate").descending());
@@ -120,13 +115,14 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponseDTO cancelBookingByAdmin (Integer bookingId){
+    public void cancelBookingByAdmin (Integer bookingId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
         Event event = booking.getEvent();
-        return cancelBooking(booking, event);
+        cancelBooking(booking, event);
     }
 
-    public BookingResponseDTO cancelBooking(Booking booking, Event event){
+
+    public void cancelBooking(Booking booking, Event event){
 
         BookingStatus formerStatus = booking.getStatus();
         booking.setStatus(BookingStatus.REFUNDED);
@@ -149,7 +145,7 @@ public class BookingService {
             eventRepository.save(event);
         }
 
-        return bookingMapper.toDTO(booking);
+        bookingMapper.toDTO(booking);
     }
 
 
