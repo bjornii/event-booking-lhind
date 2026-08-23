@@ -6,19 +6,31 @@ services:
       MYSQL_DATABASE: event_booking_db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   spring-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: my-spring-app:latest
     container_name: spring-app
     ports:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/event_booking_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysql-data:

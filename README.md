@@ -30,7 +30,7 @@ event-booking-lhind/
 Copy `.env.example` to `.env` (or edit `.env` directly if already present) in the project root:
 
 ```env
-DB_URL=jdbc:mysql://localhost:3306/event_booking_db?useSSL=false&serverTimezone=UTC
+DB_URL=jdbc:mysql://mysql:3306/event_booking_db?useSSL=false&serverTimezone=UTC
 DB_USERNAME=root
 DB_PASSWORD=root
 JWT_SECRET=RWsxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM=
