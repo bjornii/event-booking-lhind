@@ -11,6 +11,8 @@ import com.lufthansa.internship.payment.PaymentStrategy;
 import com.lufthansa.internship.repository.BookingRepository;
 import com.lufthansa.internship.repository.PaymentRepository;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,6 +22,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class PaymentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final Map<String, PaymentStrategy> strategies;
@@ -27,9 +31,11 @@ public class PaymentService {
     public PaymentResponseDTO processPayment(PaymentRequestDTO request) {
         PaymentStrategy strategy = strategies.get(request.getType().name().toLowerCase());
         if (strategy == null) {
+            logger.warn("Unsupported payment type requested: {}", request.getType());
             throw new UnsupportedPaymentTypeException("No strategy for payment type: " + request.getType());
         }
-        Booking booking = bookingRepository.findById(request.getBookingId()).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
 
         Payment payment = new Payment();
         payment.setBooking(booking);
@@ -41,12 +47,15 @@ public class PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
+        logger.debug("Payment record created for booking {}, amount {}", booking.getId(), request.getAmount());
 
         try {
             strategy.pay(request.getAmount());
             payment.setStatus(PaymentStatus.SUCCESS);
+            logger.info("Payment succeeded for booking {} via {}", booking.getId(), request.getType());
         } catch (Exception e) {
             payment.setStatus(PaymentStatus.FAILED);
+            logger.warn("Payment failed for booking {} via {}: {}", booking.getId(), request.getType(), e.getMessage());
         }
 
         Payment saved = paymentRepository.save(payment);
@@ -60,5 +69,4 @@ public class PaymentService {
                 .bookingId(saved.getBooking().getId())
                 .build();
     }
-
 }

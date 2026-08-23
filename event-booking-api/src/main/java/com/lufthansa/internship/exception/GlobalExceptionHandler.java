@@ -150,6 +150,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(UnsupportedPaymentTypeException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedPaymentType(UnsupportedPaymentTypeException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.BAD_REQUEST.value())
+                .error("Unsupported Payment Type").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(AccountDeactivatedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountDeactivated(AccountDeactivatedException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.FORBIDDEN.value())
+                .error("Account Deactivated").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(Exception ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.UNAUTHORIZED.value())
+                .error("Invalid Credentials").message("Email or password is incorrect").path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+
+
 
 
 
