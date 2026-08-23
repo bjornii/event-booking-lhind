@@ -30,10 +30,10 @@ event-booking-lhind/
 Copy `.env.example` to `.env` (or edit `.env` directly if already present) in the project root:
 
 ```env
-DB_URL=jdbc:mysql://mysql:3306/event_booking_db?useSSL=false&serverTimezone=UTC
+DB_URL: jdbc:mysql://mysql:3306/event_booking_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 DB_USERNAME=root
 DB_PASSWORD=root
-JWT_SECRET=RWsxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM=
+JWT_SECRET=your-jwt-secret-code-64
 JWT_EXPIRATION_MS=3600000
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
@@ -124,11 +124,11 @@ Shared configuration (DB connection, JWT, OAuth2 client registration) lives in `
 
 When running with `dev` (or `testing`) profile, `RoleDataSeeder` automatically creates one test account per role on startup, if they don't already exist:
 
-| Email | Password | Role |
-|---|---|---|
-| `admin@test.com` | `admin123` | `ADMIN` |
-| `organizer@test.com` | `organizer123` | `ORGANIZER` |
-| `attendee@test.com` | `attendee123` | `ATTENDEE` |
+| Email | Password        | Role |
+|---|-----------------|---|
+| `admin@test.com` | `Admin123$`     | `ADMIN` |
+| `organizer@test.com` | `Organizer123$` | `ORGANIZER` |
+| `attendee@test.com` | `Attendee123$`  | `ATTENDEE` |
 
 This seeder is disabled entirely in `prod` (`@Profile({"dev", "testing"})`), so no test credentials ever ship to production.
 
