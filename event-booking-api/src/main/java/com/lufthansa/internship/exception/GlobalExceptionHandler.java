@@ -90,6 +90,42 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    @ExceptionHandler(SeatLimitExceedingException.class)
+    public ResponseEntity<ErrorResponse> handleSeatLimitExceeded(SeatLimitExceedingException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Seat Limit Exceeded")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(BookingNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBookingNotFound(BookingNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("Booking Not Found")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(UnauthorizedCalcellationException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedCancellation(UnauthorizedCalcellationException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Forbidden")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
 
 
 
