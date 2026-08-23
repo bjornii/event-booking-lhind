@@ -24,9 +24,9 @@ public class RoleDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        seedUser("admin@test.com", "admin123", UserRole.ADMIN);
-        seedUser("organizer@test.com", "organizer123", UserRole.ORGANIZER);
-        seedUser("attendee@test.com", "attendee123", UserRole.ATTENDEE);
+        seedUser("admin@test.com", "Admin123$", UserRole.ADMIN);
+        seedUser("organizer@test.com", "Organizer123$", UserRole.ORGANIZER);
+        seedUser("attendee@test.com", "Attendee123$", UserRole.ATTENDEE);
     }
 
     private void seedUser(String email, String rawPassword, UserRole role) {

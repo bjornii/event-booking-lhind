@@ -39,16 +39,16 @@ public class BookingService {
     private final BookingTransactionService bookingTransactionService;
 
     @Transactional
-    public BookingResponseDTO createBooking(BookingWithPaymentRequestDTO request){
+    public BookingResponseDTO createBooking(Integer userId, BookingWithPaymentRequestDTO request){
         log.info("Creating booking for user {} on event {} with {} seats",
-                request.getUserId(), request.getEventId(), request.getSeatsBooked());
+                userId, request.getEventId(), request.getSeatsBooked());
 
         if (request.getSeatsBooked() > 6){
             log.warn("Booking rejected: user {} requested {} seats (limit is 6)",
-                    request.getUserId(), request.getSeatsBooked());
+                    userId, request.getSeatsBooked());
             throw new SeatLimitExceedingException("Cannot book more than 6 seats per booking");
         }
-        Booking booking = bookingTransactionService.createInitialBooking(request);
+        Booking booking = bookingTransactionService.createInitialBooking(userId, request);
 
         if (booking.getStatus() == BookingStatus.PENDING_PAYMENT) {
             PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()

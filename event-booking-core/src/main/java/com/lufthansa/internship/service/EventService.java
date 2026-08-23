@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -90,7 +91,14 @@ public class EventService {
 
         Event event = eventMapper.toEntity(request);
         event.setOrganizer(organizer);
+        event.setCreatedAt(LocalDateTime.now());
+        event.setStatus(EventStatus.UPCOMING);
         event.setVisibility(EventVisibility.UNLISTED);
+
+        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+            List<Category> categories = categoryRepository.findAllById(request.getCategoryIds());
+            event.setCategories(categories);
+        }
 
         Event saved = eventRepository.save(event);
         log.info("Event created successfully with id={} title={}", saved.getId(), saved.getTitle());
@@ -116,7 +124,7 @@ public class EventService {
         if (sortVariable.trim().isEmpty()) sortVariable = "startDateTime";
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortVariable));
-        Page<Event> events = eventRepository.findByVisibilityAndCategories_NameIn(EventVisibility.PUBLISHED, categories, pageable);
+        Page<Event> events = eventRepository.findByVisibilityAndCategoryNamesIgnoreCase(EventVisibility.PUBLISHED, categories, pageable);
 
         log.info("Fetched {} events by category", events.getTotalElements());
         return events.map(eventMapper::toDTO);
@@ -180,7 +188,7 @@ public class EventService {
             log.error("Unauthorized update attempt by organizerId={} for eventId={}", organizerId, eventId);
             throw new UnauthorizedUpdateEventException("You can only update your own events");
         }
-        if (eventRepository.existsEventByTitle(request.getTitle())) {
+        if (eventRepository.findByTitle(request.getTitle()) != null && eventRepository.findByTitle(request.getTitle()).getId().equals(eventId)) {
             log.error("Duplicate event title detected during update: {}", request.getTitle());
             throw new DuplicateEventTitleException("Event already exists!");
         }
@@ -189,7 +197,9 @@ public class EventService {
 
         eventMapper.updateEntityFromDTO(request, event);
         event.setUpdatedAt(LocalDateTime.now());
-
+        List<Category> categories = categoryRepository.findAllById(request.getCategoryIds());
+        event.getCategories().clear();
+        event.getCategories().addAll(categories);
         Event saved = eventRepository.save(event);
         log.info("Event updated successfully with id={}", saved.getId());
         return eventMapper.toDTO(saved);

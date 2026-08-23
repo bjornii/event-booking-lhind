@@ -42,9 +42,10 @@ public class BookingController {
             @ApiResponse(responseCode = "400", description = "Requested seats exceed the 6-seat limit"),
             @ApiResponse(responseCode = "401", description = "Caller is not authenticated")
     })
-    public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingWithPaymentRequestDTO request){
-        log.info("Booking request received for event {} by user {}", request.getEventId(), request.getUserId());
-        BookingResponseDTO created = bookingService.createBooking(request);
+    public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingWithPaymentRequestDTO request,
+                                                            @AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        log.info("Booking request received for event {} by user {}", request.getEventId(), authenticatedUser.getId());
+        BookingResponseDTO created = bookingService.createBooking(authenticatedUser.getId(),request);
         URI location = URI.create("/api/booking/" + created.getId());
         return ResponseEntity.created(location).body(created);
     }

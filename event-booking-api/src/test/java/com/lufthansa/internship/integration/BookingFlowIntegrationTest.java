@@ -79,7 +79,6 @@ class BookingFlowIntegrationTest {
     @Test
     void bookingFlow_confirmsBooking_andDecrementsAvailableSeats() {
         BookingWithPaymentRequestDTO request = BookingWithPaymentRequestDTO.builder()
-                .userId(attendee.getId())
                 .eventId(event.getId())
                 .seatsBooked(2)
                 .amount(100.0)
@@ -88,7 +87,7 @@ class BookingFlowIntegrationTest {
                 .cardBrand("Visa")
                 .build();
 
-        BookingResponseDTO response = bookingService.createBooking(request);
+        BookingResponseDTO response = bookingService.createBooking(attendee.getId(), request);
 
         assertEquals(BookingStatus.CONFIRMED.name(), response.getStatus());
 
@@ -98,8 +97,8 @@ class BookingFlowIntegrationTest {
 
     @Test
     void bookingFlow_whenSeatsExceedEventCapacity_goesToWaitlist() {
-        bookingService.createBooking(BookingWithPaymentRequestDTO.builder()
-                .userId(attendee.getId()).eventId(event.getId())
+        bookingService.createBooking(attendee.getId(), BookingWithPaymentRequestDTO.builder()
+                .eventId(event.getId())
                 .seatsBooked(2).amount(100.0)
                 .paymentType(PaymentType.CREDITCARD).cardLastFour("1234").cardBrand("Visa")
                 .build());
@@ -113,8 +112,8 @@ class BookingFlowIntegrationTest {
         secondAttendee.setCreatedAt(LocalDateTime.now());
         secondAttendee = userRepository.save(secondAttendee);
 
-        BookingResponseDTO response = bookingService.createBooking(BookingWithPaymentRequestDTO.builder()
-                .userId(secondAttendee.getId()).eventId(event.getId())
+        BookingResponseDTO response = bookingService.createBooking(secondAttendee.getId(), BookingWithPaymentRequestDTO.builder()
+                .eventId(event.getId())
                 .seatsBooked(1).amount(50.0)
                 .paymentType(PaymentType.CREDITCARD).cardLastFour("5678").cardBrand("Visa")
                 .build());
@@ -128,13 +127,13 @@ class BookingFlowIntegrationTest {
     @Test
     void bookingFlow_rejectsBookingOverSeatLimit() {
         BookingWithPaymentRequestDTO request = BookingWithPaymentRequestDTO.builder()
-                .userId(attendee.getId()).eventId(event.getId())
+                .eventId(event.getId())
                 .seatsBooked(7)
                 .amount(350.0)
                 .paymentType(PaymentType.CREDITCARD).cardLastFour("1234").cardBrand("Visa")
                 .build();
 
-        assertThrows(SeatLimitExceedingException.class, () -> bookingService.createBooking(request));
+        assertThrows(SeatLimitExceedingException.class, () -> bookingService.createBooking(attendee.getId(), request));
 
         Event unchanged = eventRepository.findById(event.getId()).orElseThrow();
         assertEquals(2, unchanged.getAvailableSeats());
@@ -142,8 +141,8 @@ class BookingFlowIntegrationTest {
 
     @Test
     void cancelBooking_promotesWaitlistedBookingAndRestoresSeats() {
-        BookingResponseDTO firstBooking = bookingService.createBooking(BookingWithPaymentRequestDTO.builder()
-                .userId(attendee.getId()).eventId(event.getId())
+        BookingResponseDTO firstBooking = bookingService.createBooking(attendee.getId(), BookingWithPaymentRequestDTO.builder()
+                .eventId(event.getId())
                 .seatsBooked(2).amount(100.0)
                 .paymentType(PaymentType.CREDITCARD).cardLastFour("1234").cardBrand("Visa")
                 .build());
@@ -157,8 +156,8 @@ class BookingFlowIntegrationTest {
         waitlistedUser.setCreatedAt(LocalDateTime.now());
         waitlistedUser = userRepository.save(waitlistedUser);
 
-        BookingResponseDTO waitlisted = bookingService.createBooking(BookingWithPaymentRequestDTO.builder()
-                .userId(waitlistedUser.getId()).eventId(event.getId())
+        BookingResponseDTO waitlisted = bookingService.createBooking(waitlistedUser.getId(), BookingWithPaymentRequestDTO.builder()
+                .eventId(event.getId())
                 .seatsBooked(1).amount(50.0)
                 .paymentType(PaymentType.CREDITCARD).cardLastFour("5678").cardBrand("Visa")
                 .build());

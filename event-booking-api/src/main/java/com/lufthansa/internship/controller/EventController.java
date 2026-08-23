@@ -40,9 +40,9 @@ public class EventController {
     private final EventService eventService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Create a new event", description = "Organizer-only. Creates a new event in UNLISTED visibility until published.")
+    @Operation(summary = "Create a new event", description = "Organizer/Admin-only. Creates a new event in UNLISTED visibility until published.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Event created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid event data (dates, seats, price, category, or venue)"),
@@ -138,9 +138,9 @@ public class EventController {
     }
 
     @PatchMapping("/publish/{eventId}")
-    @PreAuthorize("hasRole('ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Publish an event", description = "Organizer-only. Makes the event publicly visible.")
+    @Operation(summary = "Publish an event", description = "Organizer/Admin-only. Makes the event publicly visible.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Event published"),
             @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
@@ -154,9 +154,9 @@ public class EventController {
     }
 
     @PatchMapping("/unlist/{eventId}")
-    @PreAuthorize("hasRole('ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Unlist an event", description = "Organizer-only. Hides the event from public listings.")
+    @Operation(summary = "Unlist an event", description = "Organizer/Admin-only. Hides the event from public listings.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Event unlisted"),
             @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
@@ -170,9 +170,9 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @PreAuthorize("hasRole('ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Update an event", description = "Organizer-only. Updates fields on an event you own.")
+    @Operation(summary = "Update an event", description = "Organizer/Admin-only. Updates fields on an event you own.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Event updated"),
             @ApiResponse(responseCode = "400", description = "Invalid event data"),
@@ -189,9 +189,9 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasRole('ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Cancel an event", description = "Organizer-only. Cancels an upcoming event and refunds/cancels its bookings.")
+    @Operation(summary = "Cancel an event", description = "Organizer/Admin-only. Cancels an upcoming event and refunds/cancels its bookings.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Event cancelled"),
             @ApiResponse(responseCode = "400", description = "Event already started or is not upcoming"),

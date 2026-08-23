@@ -33,7 +33,7 @@ public class VenueController {
             @ApiResponse(responseCode = "201", description = "Venue created"),
             @ApiResponse(responseCode = "409", description = "Venue with this name already exists")
     })
-    public ResponseEntity<VenueResponseDTO> createCategory(@Valid @RequestBody VenueRequestDTO request){
+    public ResponseEntity<VenueResponseDTO> createVenue(@Valid @RequestBody VenueRequestDTO request){
         VenueResponseDTO created = venueService.createVenue(request);
         URI location = URI.create("/api/venues/" + created.getId());
         return ResponseEntity.created(location).body(created);
@@ -44,9 +44,9 @@ public class VenueController {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "List all venues", description = "Admin-only.")
     @ApiResponse(responseCode = "200", description = "Venues retrieved successfully")
-    public ResponseEntity<Page<VenueResponseDTO>> getAllCategories(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
-        Page<VenueResponseDTO> users = venueService.getAllCategories(page, size);
-        return ResponseEntity.ok(users);
+    public ResponseEntity<Page<VenueResponseDTO>> getAllVenues(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
+        Page<VenueResponseDTO> venues = venueService.getAllVenues(page, size);
+        return ResponseEntity.ok(venues);
     }
 
     @PutMapping("/{venueId}")
@@ -58,7 +58,7 @@ public class VenueController {
             @ApiResponse(responseCode = "404", description = "Venue not found"),
             @ApiResponse(responseCode = "409", description = "Venue with this name already exists")
     })
-    public ResponseEntity<VenueResponseDTO> updateCategory(@PathVariable Integer venueId, @Valid @RequestBody VenueRequestDTO request){
+    public ResponseEntity<VenueResponseDTO> updateVenue(@PathVariable Integer venueId, @Valid @RequestBody VenueRequestDTO request){
         VenueResponseDTO updated = venueService.updateVenue(venueId, request);
         return ResponseEntity.ok(updated);
     }
@@ -71,7 +71,7 @@ public class VenueController {
             @ApiResponse(responseCode = "204", description = "Venue deactivated"),
             @ApiResponse(responseCode = "404", description = "Venue not found")
     })
-    public ResponseEntity<Void> removeCategory(@Valid @PathVariable Integer venueId){
+    public ResponseEntity<Void> removeVenue(@Valid @PathVariable Integer venueId){
         venueService.removeVenue(venueId);
         return ResponseEntity.noContent().build();
     }

@@ -26,7 +26,8 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     Page<Event> findAllByVisibility(EventVisibility visibility, Pageable pageable);
 
-    Page<Event> findByVisibilityAndCategories_NameIn(EventVisibility visibility, Collection<String> categoryNames, Pageable pageable);
+    @Query("SELECT DISTINCT e FROM Event e JOIN e.categories c WHERE e.visibility = :visibility AND LOWER(c.name) IN :names")
+    Page<Event> findByVisibilityAndCategoryNamesIgnoreCase(@Param("visibility") EventVisibility visibility, @Param("names") List<String> names, Pageable pageable);
 
     Page<Event> findByVisibilityAndVenueIn(EventVisibility eventVisibility, List<Venue> cityVenues, Pageable pageable);
 

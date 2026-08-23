@@ -18,9 +18,6 @@ public class BookingWithPaymentRequestDTO {
     private Integer seatsBooked;
 
     @NotNull @Positive
-    private Integer userId;
-
-    @NotNull @Positive
     private Integer eventId;
 
     @NotNull @Positive

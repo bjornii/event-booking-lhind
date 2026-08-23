@@ -30,10 +30,10 @@ public class BookingTransactionService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Booking createInitialBooking(BookingWithPaymentRequestDTO request) {
+    public Booking createInitialBooking(Integer userId, BookingWithPaymentRequestDTO request) {
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User does not exist!"));
 
         Booking booking = new Booking();

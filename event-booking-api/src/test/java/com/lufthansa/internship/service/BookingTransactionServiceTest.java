@@ -42,7 +42,7 @@ class BookingTransactionServiceTest {
         user.setId(1);
 
         request = BookingWithPaymentRequestDTO.builder()
-                .eventId(1).userId(1).seatsBooked(2)
+                .eventId(1).seatsBooked(2)
                 .amount(100.0).paymentType(PaymentType.CREDITCARD)
                 .cardBrand("VISA").cardLastFour("1234")
                 .build();
@@ -55,7 +55,7 @@ class BookingTransactionServiceTest {
         when(eventRepository.tryReserveSeats(1, 2)).thenReturn(1);
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Booking result = bookingTransactionService.createInitialBooking(request);
+        Booking result = bookingTransactionService.createInitialBooking(user.getId(), request);
 
         assertEquals(BookingStatus.PENDING_PAYMENT, result.getStatus());
         verify(eventRepository).tryReserveSeats(1, 2);
@@ -68,7 +68,7 @@ class BookingTransactionServiceTest {
         when(eventRepository.tryReserveSeats(1, 2)).thenReturn(0);
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Booking result = bookingTransactionService.createInitialBooking(request);
+        Booking result = bookingTransactionService.createInitialBooking(user.getId(), request);
 
         assertEquals(BookingStatus.WAITLIST, result.getStatus());
     }

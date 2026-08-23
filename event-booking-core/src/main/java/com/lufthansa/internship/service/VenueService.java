@@ -29,8 +29,13 @@ public class VenueService {
     private final VenueRepository venueRepository;
     private final VenueMapper venueMapper;
 
+    public VenueRequestDTO validateRequest(VenueRequestDTO request) {
+        return new VenueRequestDTO(request.getName().trim(), request.getAddress().trim(), request.getCity().trim(), request.getCapacity());
+    }
+
     @Transactional
     public VenueResponseDTO createVenue(VenueRequestDTO request){
+        request = validateRequest(request);
         Venue existing = venueRepository.findByName(request.getName());
         if (existing != null) {
             log.warn("Venue creation rejected: '{}' already exists", request.getName());
@@ -45,7 +50,7 @@ public class VenueService {
     }
 
     @Transactional
-    public Page<VenueResponseDTO> getAllCategories(Integer page, Integer size){
+    public Page<VenueResponseDTO> getAllVenues(Integer page, Integer size){
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
         Page<Venue> venues = venueRepository.findAll(pageable);
         return venues.map(venueMapper::toDTO);
@@ -53,10 +58,11 @@ public class VenueService {
 
     @Transactional
     public VenueResponseDTO updateVenue(Integer venueId, VenueRequestDTO request){
+        request = validateRequest(request);
         Venue existing = venueRepository.findByIdAndStatus(venueId, VenueStatus.ACTIVE)
                 .orElseThrow(() -> new VenueNotFoundException("Venue does not exist"));
         Venue dupe = venueRepository.findByName(request.getName());
-        if (dupe != null) {
+        if (dupe != null && dupe.getId().equals(venueId)) {
             log.warn("Venue update rejected: name '{}' already in use", request.getName());
             throw new DuplicateVenueException("Venue with this name already exists");
         }
