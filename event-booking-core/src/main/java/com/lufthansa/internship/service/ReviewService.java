@@ -14,6 +14,8 @@ import com.lufthansa.internship.repository.ReviewRepository;
 import com.lufthansa.internship.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,8 @@ import java.time.LocalDateTime;
 @Service
 @AllArgsConstructor
 public class ReviewService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
 
     private final ReviewRepository reviewRepository;
     private final EventRepository eventRepository;
@@ -34,18 +38,28 @@ public class ReviewService {
         Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist"));
 
         boolean hasBooking = bookingRepository.existsByUserAndEventAndStatus(user, event, BookingStatus.CONFIRMED);
-        if (!hasBooking) throw new InvalidReviewRequestException("User does not have booking, cannot leave review");
+        if (!hasBooking) {
+            logger.warn("Review rejected: user {} has no confirmed booking for event {}", userId, event.getId());
+            throw new InvalidReviewRequestException("User does not have booking, cannot leave review");
+        }
         boolean hasReview = reviewRepository.existsByUserAndEvent(user, event);
-        if (hasReview) throw new InvalidReviewRequestException("User already left a review for this event");
+        if (hasReview) {
+            logger.warn("Review rejected: user {} already reviewed event {}", userId, event.getId());
+            throw new InvalidReviewRequestException("User already left a review for this event");
+        }
+        if (event.getStatus() != EventStatus.FINISHED) {
+            logger.warn("Review rejected: event {} has not finished yet", event.getId());
+            throw new InvalidReviewRequestException("Cannot leave review before event ends");
+        }
 
-        if (event.getStatus() != EventStatus.FINISHED) throw new InvalidReviewRequestException("Cannot leave review before event ends");
         Review review = reviewMapper.toEntity(request);
         review.setUser(user);
         review.setEvent(event);
-        review.setComment((request.getComment()));
+        review.setComment(request.getComment());
         review.setCreatedAt(LocalDateTime.now());
 
         Review saved = reviewRepository.save(review);
+        logger.info("Review {} created by user {} for event {}", saved.getId(), userId, event.getId());
         return reviewMapper.toDTO(saved);
     }
 
@@ -53,6 +67,6 @@ public class ReviewService {
     public void deleteReview(Integer reviewId){
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException("Review not found"));
         reviewRepository.delete(review);
+        logger.info("Review {} deleted", reviewId);
     }
-
 }
