@@ -61,7 +61,7 @@ class BookingFlowIntegrationTest {
         attendee = userRepository.save(attendee);
 
         event = new Event();
-        event.setTitle("Integration Test Concert");
+        event.setTitle("Test Concert");
         event.setDescription("desc");
         event.setStartDateTime(LocalDateTime.now().plusDays(5));
         event.setEndDateTime(LocalDateTime.now().plusDays(5).plusHours(3));

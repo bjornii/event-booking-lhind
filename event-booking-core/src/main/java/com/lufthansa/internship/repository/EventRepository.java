@@ -20,13 +20,6 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Integer> {
     Event findByTitle(String title);
 
-
-    Page<Event> findByVenueIn(List<Venue> cityVenues, Pageable pageable);
-
-    Page<Event> findByStartDateTimeBetween(LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable);
-
-    Page<Event> findByPriceBetween(Double startPrice, Double endPrice, Pageable pageable);
-
     List<Event> findByOrganizerId(Integer userId);
 
     boolean existsEventByTitle(String title);
@@ -43,12 +36,12 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     Optional<Event> findByVisibilityAndId(EventVisibility eventVisibility, Integer eventId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Event e SET e.availableSeats = e.availableSeats - :seats " +
             "WHERE e.id = :eventId AND e.availableSeats >= :seats")
     int tryReserveSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE events SET available_seats = available_seats + :seats " +
             "WHERE id = :eventId", nativeQuery = true)
     void releaseSeats(@Param("eventId") Integer eventId, @Param("seats") Integer seats);

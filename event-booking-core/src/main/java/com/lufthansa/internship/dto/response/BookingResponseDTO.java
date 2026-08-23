@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -18,7 +19,7 @@ public class BookingResponseDTO {
     @NotBlank
     private String status;
     @NotNull
-    private LocalDate bookingDate;
+    private LocalDateTime bookingDate;
     @NotBlank @Size(min = 4, max = 30)
     private String userName;
     @NotBlank @Size(min = 4, max = 30)
