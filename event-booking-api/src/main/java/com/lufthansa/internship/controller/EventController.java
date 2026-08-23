@@ -28,388 +28,183 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/events")
 @Tag(name = "Events", description = "Browse, create, and manage events")
 public class EventController {
 
-    private static final Logger log = LoggerFactory.getLogger(EventController.class);
+    private static final Logger logger = LoggerFactory.getLogger(EventController.class);
+
     private final EventService eventService;
 
     @PostMapping
     @PreAuthorize("hasRole('ORGANIZER')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Create a new event",
-            description = "Organizer only. Create a new event listing"
-    )
+    @Operation(summary = "Create a new event", description = "Organizer-only. Creates a new event in UNLISTED visibility until published.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Event created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid event data"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an organizer")
+            @ApiResponse(responseCode = "400", description = "Invalid event data (dates, seats, price, category, or venue)"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an organizer"),
+            @ApiResponse(responseCode = "404", description = "Organizer user not found"),
+            @ApiResponse(responseCode = "409", description = "An event with this title already exists")
     })
-    public ResponseEntity<EventResponseDTO> createEvent(
-            @Valid @RequestBody EventRequestDTO request,
-            @AuthenticationPrincipal AppUserPrincipal authenticatedUser) {
-
-        log.info("Organizer {} creating event '{}'",
-                authenticatedUser.getId(), request.getTitle());
-
-        EventResponseDTO created =
-                eventService.createEvent(authenticatedUser.getId(), request);
-
+    public ResponseEntity<EventResponseDTO> createEvent(@Valid @RequestBody EventRequestDTO request,
+                                                        @AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        logger.info("Organizer {} creating event '{}'", authenticatedUser.getId(), request.getTitle());
+        EventResponseDTO created = eventService.createEvent(authenticatedUser.getId(), request);
+        logger.info("Event '{}' created with id {}", created.getTitle(), created.getId());
         URI location = URI.create("/api/events/" + created.getId());
-
-        log.info("Event {} created successfully by organizer {}",
-                created.getId(), authenticatedUser.getId());
-
         return ResponseEntity.created(location).body(created);
     }
 
-
     @GetMapping
-    @Operation(
-            summary = "List all events",
-            description = "Returns a paginated and sortable list of all events"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Events retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid pagination or sorting parameters")
-    })
+    @Operation(summary = "List all published events", description = "Paginated, sortable list of publicly visible events")
+    @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
     public ResponseEntity<Page<EventResponseDTO>> getAllEvents(
-            @Parameter(description = "Field to sort by")
-            @RequestParam(defaultValue = "startDateTime") String sort,
-
-            @Parameter(description = "Page number, zero-indexed")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of events per page")
-            @RequestParam(defaultValue = "10") int size) {
-
-        log.info("Getting all events - page: {}, size: {}, sort: {}", page, size, sort);
-
-        Page<EventResponseDTO> events =
-                eventService.getAllEvents(sort, page, size);
-
-        log.info("Retrieved {} events for page {}", events.getNumberOfElements(), page);
-
+            @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "startDateTime") String sort,
+            @Parameter(description = "Zero-indexed page number") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size){
+        Page<EventResponseDTO> events = eventService.getAllEvents(sort, page, size);
         return ResponseEntity.ok(events);
     }
 
-
     @GetMapping("/{eventId}")
-    @Operation(
-            summary = "Get event by ID",
-            description = "Returns the details of a single event"
-    )
+    @Operation(summary = "Get a published event by ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Event found"),
-            @ApiResponse(responseCode = "404", description = "Event not found")
+            @ApiResponse(responseCode = "404", description = "Event not found or not published")
     })
     public ResponseEntity<EventResponseDTO> getEventById(
-            @Parameter(description = "ID of the event")
-            @PathVariable Integer eventId) {
-
-        log.info("Getting event with id: {}", eventId);
-
+            @Parameter(description = "ID of the event to retrieve") @PathVariable Integer eventId) {
         EventResponseDTO event = eventService.getSingleEvent(eventId);
-
         return ResponseEntity.ok(event);
     }
 
-
     @GetMapping("/category")
-    @Operation(
-            summary = "List events filtered by category",
-            description = "Returns a paginated list of events belonging to one or more categories"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Events retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid category or pagination parameters")
-    })
+    @Operation(summary = "Filter published events by category")
+    @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
     public ResponseEntity<Page<EventResponseDTO>> getEventsByCategory(
-            @Parameter(
-                    description = "Event category or categories",
-                    example = "CONCERT"
-            )
-            @RequestParam List<String> category,
-
-            @Parameter(description = "Field to sort by")
+            @Parameter(description = "One or more category names") @RequestParam List<String> category,
             @RequestParam(defaultValue = "startDateTime") String sort,
-
-            @Parameter(description = "Page number, zero-indexed")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of events per page")
             @RequestParam(defaultValue = "10") int size) {
-
-        log.info("Getting events by category: {}, page: {}, size: {}, sort: {}",
-                category, page, size, sort);
-
-        Page<EventResponseDTO> events =
-                eventService.getEventsByCategory(category, sort, page, size);
-
-        log.info("Retrieved {} events for categories {}",
-                events.getNumberOfElements(), category);
-
+        Page<EventResponseDTO> events = eventService.getEventsByCategory(category, sort, page, size);
         return ResponseEntity.ok(events);
     }
-
 
     @GetMapping("/city")
-    @Operation(
-            summary = "List events filtered by city",
-            description = "Returns a paginated list of events taking place in the specified city"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Events retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid city or pagination parameters")
-    })
+    @Operation(summary = "Filter published events by city")
+    @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
     public ResponseEntity<Page<EventResponseDTO>> getEventsByCity(
-            @Parameter(description = "City where the events take place")
-            @RequestParam String city,
-
-            @Parameter(description = "Field to sort by")
+            @Parameter(description = "City name") @RequestParam String city,
             @RequestParam(defaultValue = "startDateTime") String sort,
-
-            @Parameter(description = "Page number, zero-indexed")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of events per page")
             @RequestParam(defaultValue = "10") int size) {
-
-        log.info("Getting events in city '{}', page: {}, size: {}, sort: {}",
-                city, page, size, sort);
-
-        Page<EventResponseDTO> events =
-                eventService.getEventsByCity(city, sort, page, size);
-
-        log.info("Retrieved {} events for city '{}'",
-                events.getNumberOfElements(), city);
-
+        Page<EventResponseDTO> events = eventService.getEventsByCity(city, sort, page, size);
         return ResponseEntity.ok(events);
     }
 
-
     @GetMapping("/dateRange")
-    @Operation(
-            summary = "List events filtered by date range",
-            description = "Returns events occurring between the specified start and end dates"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Events retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid date range or pagination parameters")
-    })
+    @Operation(summary = "Filter published events by date range")
+    @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
     public ResponseEntity<Page<EventResponseDTO>> getEventsByDateRange(
-            @Parameter(description = "Start date of the range")
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate from,
-
-            @Parameter(description = "End date of the range")
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate to,
-
-            @Parameter(description = "Field to sort by")
+            @Parameter(description = "Start date (inclusive), ISO format yyyy-MM-dd")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "End date (inclusive), ISO format yyyy-MM-dd")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "startDateTime") String sort,
-
-            @Parameter(description = "Page number, zero-indexed")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of events per page")
             @RequestParam(defaultValue = "10") int size) {
-
-        log.info("Getting events between {} and {}, page: {}, size: {}, sort: {}",
-                from, to, page, size, sort);
-
         LocalDateTime fromDateTime = from.atStartOfDay();
         LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
 
-        Page<EventResponseDTO> events =
-                eventService.getEventsByDateRange(
-                        fromDateTime,
-                        toDateTime,
-                        sort,
-                        page,
-                        size
-                );
-
-        log.info("Retrieved {} events between {} and {}",
-                events.getNumberOfElements(), from, to);
-
+        Page<EventResponseDTO> events = eventService.getEventsByDateRange(fromDateTime, toDateTime, sort, page, size);
         return ResponseEntity.ok(events);
     }
-
 
     @GetMapping("/priceRange")
-    @Operation(
-            summary = "List events filtered by price range",
-            description = "Returns a paginated list of events whose price falls within the specified range"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Events retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid price range or pagination parameters")
-    })
+    @Operation(summary = "Filter published events by price range")
+    @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
     public ResponseEntity<Page<EventResponseDTO>> getEventsByPriceRange(
-            @Parameter(description = "Minimum event price")
-            @RequestParam Double start,
-
-            @Parameter(description = "Maximum event price")
-            @RequestParam Double end,
-
-            @Parameter(description = "Field to sort by")
+            @Parameter(description = "Minimum price") @RequestParam Double start,
+            @Parameter(description = "Maximum price") @RequestParam Double end,
             @RequestParam(defaultValue = "startDateTime") String sort,
-
-            @Parameter(description = "Page number, zero-indexed")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of events per page")
             @RequestParam(defaultValue = "10") int size) {
-
-        log.info("Getting events with price between {} and {}, page: {}, size: {}, sort: {}",
-                start, end, page, size, sort);
-
-        Page<EventResponseDTO> events =
-                eventService.getEventsByPriceRange(start, end, sort, page, size);
-
-        log.info("Retrieved {} events with price between {} and {}",
-                events.getNumberOfElements(), start, end);
-
+        Page<EventResponseDTO> events = eventService.getEventsByPriceRange(start, end, sort, page, size);
         return ResponseEntity.ok(events);
     }
-
 
     @PatchMapping("/publish/{eventId}")
     @PreAuthorize("hasRole('ORGANIZER')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Publish an event",
-            description = "Organizer only. Publishes an event and makes it available to users"
-    )
+    @Operation(summary = "Publish an event", description = "Organizer-only. Makes the event publicly visible.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Event published successfully"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an organizer or does not own the event"),
+            @ApiResponse(responseCode = "200", description = "Event published"),
+            @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public ResponseEntity<EventResponseDTO> publishEvent(
-            @Parameter(description = "ID of the event to publish")
-            @PathVariable Integer eventId,
-
-            @AuthenticationPrincipal AppUserPrincipal authenticatedUser) {
-
-        log.info("Organizer {} publishing event {}",
-                authenticatedUser.getId(), eventId);
-
-        EventResponseDTO event =
-                eventService.publishEvent(authenticatedUser.getId(), eventId);
-
-        log.info("Event {} published successfully by organizer {}",
-                eventId, authenticatedUser.getId());
-
+    public ResponseEntity<EventResponseDTO> publishEvent(@PathVariable Integer eventId,
+                                                         @AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        logger.info("Organizer {} publishing event {}", authenticatedUser.getId(), eventId);
+        EventResponseDTO event = eventService.publishEvent(authenticatedUser.getId(), eventId);
         return ResponseEntity.ok(event);
     }
-
 
     @PatchMapping("/unlist/{eventId}")
     @PreAuthorize("hasRole('ORGANIZER')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Unlist an event",
-            description = "Organizer only. Removes an event from the publicly available event listings"
-    )
+    @Operation(summary = "Unlist an event", description = "Organizer-only. Hides the event from public listings.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Event unlisted successfully"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an organizer or does not own the event"),
+            @ApiResponse(responseCode = "200", description = "Event unlisted"),
+            @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public ResponseEntity<EventResponseDTO> unlistEvent(
-            @Parameter(description = "ID of the event to unlist")
-            @PathVariable Integer eventId,
-
-            @AuthenticationPrincipal AppUserPrincipal authenticatedUser) {
-
-        log.info("Organizer {} unlisting event {}",
-                authenticatedUser.getId(), eventId);
-
-        EventResponseDTO event =
-                eventService.unlistEvent(authenticatedUser.getId(), eventId);
-
-        log.info("Event {} unlisted successfully by organizer {}",
-                eventId, authenticatedUser.getId());
-
+    public ResponseEntity<EventResponseDTO> unlistEvent(@PathVariable Integer eventId,
+                                                        @AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        logger.info("Organizer {} unlisting event {}", authenticatedUser.getId(), eventId);
+        EventResponseDTO event = eventService.unlistEvent(authenticatedUser.getId(), eventId);
         return ResponseEntity.ok(event);
     }
-
 
     @PutMapping("/{eventId}")
     @PreAuthorize("hasRole('ORGANIZER')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Update an event",
-            description = "Organizer only. Updates the details of an existing event"
-    )
+    @Operation(summary = "Update an event", description = "Organizer-only. Updates fields on an event you own.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Event updated successfully"),
+            @ApiResponse(responseCode = "200", description = "Event updated"),
             @ApiResponse(responseCode = "400", description = "Invalid event data"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an organizer or does not own the event"),
-            @ApiResponse(responseCode = "404", description = "Event not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
+            @ApiResponse(responseCode = "404", description = "Event or referenced venue not found"),
+            @ApiResponse(responseCode = "409", description = "An event with this title already exists")
     })
-    public ResponseEntity<EventResponseDTO> updateEvent(
-            @Valid @RequestBody EventRequestDTO request,
-
-            @AuthenticationPrincipal AppUserPrincipal authenticatedUser,
-
-            @Parameter(description = "ID of the event to update")
-            @PathVariable Integer eventId) {
-
-        log.info("Organizer {} updating event {}",
-                authenticatedUser.getId(), eventId);
-
-        EventResponseDTO updated =
-                eventService.updateEvent(
-                        authenticatedUser.getId(),
-                        eventId,
-                        request
-                );
-
-        log.info("Event {} updated successfully by organizer {}",
-                eventId, authenticatedUser.getId());
-
+    public ResponseEntity<EventResponseDTO> updateEvent(@Valid @RequestBody EventRequestDTO request,
+                                                        @AuthenticationPrincipal AppUserPrincipal authenticatedUser,
+                                                        @PathVariable Integer eventId){
+        logger.info("Organizer {} updating event {}", authenticatedUser.getId(), eventId);
+        EventResponseDTO updated = eventService.updateEvent(authenticatedUser.getId(), eventId, request);
         return ResponseEntity.ok(updated);
     }
-
 
     @DeleteMapping("/{eventId}")
     @PreAuthorize("hasRole('ORGANIZER')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Cancel an event",
-            description = "Organizer only. Cancels an existing event"
-    )
+    @Operation(summary = "Cancel an event", description = "Organizer-only. Cancels an upcoming event and refunds/cancels its bookings.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Event cancelled successfully"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an organizer or does not own the event"),
+            @ApiResponse(responseCode = "204", description = "Event cancelled"),
+            @ApiResponse(responseCode = "400", description = "Event already started or is not upcoming"),
+            @ApiResponse(responseCode = "403", description = "Caller does not own this event"),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public ResponseEntity<Void> cancelEvent(
-            @Parameter(description = "ID of the event to cancel")
-            @PathVariable Integer eventId,
-
-            @AuthenticationPrincipal AppUserPrincipal authenticatedUser) {
-
-        log.info("Organizer {} cancelling event {}",
-                authenticatedUser.getId(), eventId);
-
+    public ResponseEntity<Void> cancelEvent(@PathVariable Integer eventId,
+                                            @AuthenticationPrincipal AppUserPrincipal authenticatedUser){
+        logger.info("Organizer {} cancelling event {}", authenticatedUser.getId(), eventId);
         eventService.cancelEvent(authenticatedUser.getId(), eventId);
-
-        log.info("Event {} cancelled successfully by organizer {}",
-                eventId, authenticatedUser.getId());
-
+        logger.info("Event {} cancelled, associated bookings refunded/cancelled", eventId);
         return ResponseEntity.noContent().build();
     }
 }
 
 
-}
