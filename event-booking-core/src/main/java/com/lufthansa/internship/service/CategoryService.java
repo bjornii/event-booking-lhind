@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CategoryService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
+    private static final Logger log = LoggerFactory.getLogger(CategoryService.class);
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
@@ -33,14 +33,14 @@ public class CategoryService {
     public CategoryResponseDTO createCategory(CategoryRequestDTO request){
         Category c = categoryRepository.findByName(request.getName());
         if (c != null) {
-            logger.warn("Category creation rejected: '{}' already exists", request.getName());
+            log.warn("Category creation rejected: '{}' already exists", request.getName());
             throw new DuplicateCategoryException("Category already exists");
         }
         Category category = categoryMapper.toEntity(request);
         category.setStatus(CategoryStatus.ACTIVE);
         category.setCreatedAt(LocalDateTime.now());
         Category saved = categoryRepository.save(category);
-        logger.info("Category '{}' created with id {}", saved.getName(), saved.getId());
+        log.info("Category '{}' created with id {}", saved.getName(), saved.getId());
         return categoryMapper.toDTO(saved);
     }
 
@@ -58,14 +58,14 @@ public class CategoryService {
 
         Category dupe = categoryRepository.findByNameIgnoreCase(request.getName().trim());
         if (dupe != null) {
-            logger.warn("Category update rejected: name '{}' already in use", request.getName());
+            log.warn("Category update rejected: name '{}' already in use", request.getName());
             throw new DuplicateCategoryException("Category with this name already exists");
         }
 
         categoryMapper.updateEntityFromDTO(request, existing);
         existing.setUpdatedAt(LocalDateTime.now());
         Category saved = categoryRepository.save(existing);
-        logger.info("Category {} updated", categoryId);
+        log.info("Category {} updated", categoryId);
         return categoryMapper.toDTO(saved);
     }
 
@@ -76,6 +76,6 @@ public class CategoryService {
         category.setStatus(CategoryStatus.INACTIVE);
         category.setUpdatedAt(LocalDateTime.now());
         categoryRepository.save(category);
-        logger.info("Category {} deactivated", categoryId);
+        log.info("Category {} deactivated", categoryId);
     }
 }

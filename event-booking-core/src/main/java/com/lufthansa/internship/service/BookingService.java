@@ -29,7 +29,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BookingService {
 
-    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    private static final Logger log = LoggerFactory.getLogger(BookingService.class);
 
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
@@ -40,11 +40,11 @@ public class BookingService {
 
     @Transactional
     public BookingResponseDTO createBooking(BookingWithPaymentRequestDTO request){
-        logger.info("Creating booking for user {} on event {} with {} seats",
+        log.info("Creating booking for user {} on event {} with {} seats",
                 request.getUserId(), request.getEventId(), request.getSeatsBooked());
 
         if (request.getSeatsBooked() > 6){
-            logger.warn("Booking rejected: user {} requested {} seats (limit is 6)",
+            log.warn("Booking rejected: user {} requested {} seats (limit is 6)",
                     request.getUserId(), request.getSeatsBooked());
             throw new SeatLimitExceedingException("Cannot book more than 6 seats per booking");
         }
@@ -63,15 +63,15 @@ public class BookingService {
             boolean success = paymentResponse.getStatus() == PaymentStatus.SUCCESS;
 
             if (!success) {
-                logger.warn("Payment failed for booking {}", booking.getId());
+                log.warn("Payment failed for booking {}", booking.getId());
             }
 
             booking = bookingTransactionService.finalizeBooking(booking.getId(), success);
         } else {
-            logger.info("Booking {} waitlisted, seats unavailable", booking.getId());
+            log.info("Booking {} waitlisted, seats unavailable", booking.getId());
         }
 
-        logger.info("Booking {} finalized with status {}", booking.getId(), booking.getStatus());
+        log.info("Booking {} finalized with status {}", booking.getId(), booking.getStatus());
         publisher.notifyBookingCreated(BookingNotificationEvent.from(booking));
         return bookingMapper.toDTO(booking);
     }
@@ -116,24 +116,24 @@ public class BookingService {
 
     @Transactional
     public void cancelBookingByUser(Integer bookingId, Integer userId){
-        logger.info("User {} requesting cancellation of booking {}", userId, bookingId);
+        log.info("User {} requesting cancellation of booking {}", userId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
 
         if (!booking.getUser().getId().equals(userId)) {
-            logger.warn("User {} attempted to cancel booking {} owned by user {}",
+            log.warn("User {} attempted to cancel booking {} owned by user {}",
                     userId, bookingId, booking.getUser().getId());
             throw new UnauthorizedCalcellationException("You can only cancel your own booking");
         }
         if (booking.getStatus() != BookingStatus.CONFIRMED) {
-            logger.warn("Booking {} cannot be cancelled, current status is {}", bookingId, booking.getStatus());
+            log.warn("Booking {} cannot be cancelled, current status is {}", bookingId, booking.getStatus());
             throw new InvalidCancellationRequestException("Booking cannot be cancelled");
         }
 
         Event event = booking.getEvent();
         if (event.getStartDateTime().minusHours(24).isBefore(LocalDateTime.now())) {
-            logger.warn("Booking {} cancellation rejected: within 24h of event start", bookingId);
+            log.warn("Booking {} cancellation rejected: within 24h of event start", bookingId);
             throw new InvalidCancellationRequestException("You cannot cancel bookings less than 24 hours before event start");
         }
 
@@ -142,7 +142,7 @@ public class BookingService {
 
     @Transactional
     public void cancelBookingByAdmin(Integer bookingId){
-        logger.info("Admin cancelling booking {}", bookingId);
+        log.info("Admin cancelling booking {}", bookingId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking does not exist!"));
         Event event = booking.getEvent();
@@ -155,11 +155,11 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
         publisher.notifyBookingCancelled(BookingNotificationEvent.from(saved));
-        logger.info("Booking {} cancelled (was {})", booking.getId(), formerStatus);
+        log.info("Booking {} cancelled (was {})", booking.getId(), formerStatus);
 
         if (formerStatus == BookingStatus.CONFIRMED){
             event.setAvailableSeats(event.getAvailableSeats() + booking.getSeatsBooked());
-            logger.debug("Event {} available seats increased to {}", event.getId(), event.getAvailableSeats());
+            log.debug("Event {} available seats increased to {}", event.getId(), event.getAvailableSeats());
 
             List<Booking> bookingWaitlist = bookingRepository.findByEventAndStatusOrderByBookingDateAsc(event, BookingStatus.WAITLIST);
             for (Booking waiting : bookingWaitlist){
@@ -167,7 +167,7 @@ public class BookingService {
                     waiting.setStatus(BookingStatus.CONFIRMED);
                     event.setAvailableSeats(event.getAvailableSeats() - waiting.getSeatsBooked());
                     bookingRepository.save(waiting);
-                    logger.info("Waitlisted booking {} promoted to CONFIRMED for event {}", waiting.getId(), event.getId());
+                    log.info("Waitlisted booking {} promoted to CONFIRMED for event {}", waiting.getId(), event.getId());
                     if (event.getAvailableSeats() == 0) break;
                 }
             }

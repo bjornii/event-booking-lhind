@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class VenueService {
 
-    private static final Logger logger = LoggerFactory.getLogger(VenueService.class);
+    private static final Logger log = LoggerFactory.getLogger(VenueService.class);
 
     private final VenueRepository venueRepository;
     private final VenueMapper venueMapper;
@@ -33,14 +33,14 @@ public class VenueService {
     public VenueResponseDTO createVenue(VenueRequestDTO request){
         Venue existing = venueRepository.findByName(request.getName());
         if (existing != null) {
-            logger.warn("Venue creation rejected: '{}' already exists", request.getName());
+            log.warn("Venue creation rejected: '{}' already exists", request.getName());
             throw new DuplicateVenueException("Venue with this name already exists");
         }
         Venue venue = venueMapper.toEntity(request);
         venue.setStatus(VenueStatus.ACTIVE);
         venue.setCreatedAt(LocalDateTime.now());
         Venue saved = venueRepository.save(venue);
-        logger.info("Venue '{}' created with id {}", saved.getName(), saved.getId());
+        log.info("Venue '{}' created with id {}", saved.getName(), saved.getId());
         return venueMapper.toDTO(saved);
     }
 
@@ -57,13 +57,13 @@ public class VenueService {
                 .orElseThrow(() -> new VenueNotFoundException("Venue does not exist"));
         Venue dupe = venueRepository.findByName(request.getName());
         if (dupe != null) {
-            logger.warn("Venue update rejected: name '{}' already in use", request.getName());
+            log.warn("Venue update rejected: name '{}' already in use", request.getName());
             throw new DuplicateVenueException("Venue with this name already exists");
         }
         venueMapper.updateEntityFromDTO(request, existing);
         existing.setUpdatedAt(LocalDateTime.now());
         Venue saved = venueRepository.save(existing);
-        logger.info("Venue {} updated", venueId);
+        log.info("Venue {} updated", venueId);
         return venueMapper.toDTO(saved);
     }
 
@@ -73,6 +73,6 @@ public class VenueService {
                 .orElseThrow(() -> new VenueNotFoundException("Venue does not exist"));
         venue.setStatus(VenueStatus.INACTIVE);
         venueRepository.save(venue);
-        logger.info("Venue {} deactivated", venueId);
+        log.info("Venue {} deactivated", venueId);
     }
 }

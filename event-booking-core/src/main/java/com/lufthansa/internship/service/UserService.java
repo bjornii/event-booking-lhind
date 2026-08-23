@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -36,11 +36,11 @@ public class UserService {
     @Transactional
     public UserResponseDTO createUser(UserRegisterRequestDTO request, UserRole role){
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            logger.warn("User creation rejected: email '{}' already exists", request.getEmail());
+            log.warn("User creation rejected: email '{}' already exists", request.getEmail());
             throw new DuplicateEmailException("Email already exists");
         }
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            logger.warn("User creation rejected: username '{}' already exists", request.getUsername());
+            log.warn("User creation rejected: username '{}' already exists", request.getUsername());
             throw new DuplicateEmailException("Username already exists");
         }
 
@@ -50,7 +50,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
         User saved = userRepository.save(user);
-        logger.info("Admin created user {} with role {}", saved.getId(), role);
+        log.info("Admin created user {} with role {}", saved.getId(), role);
         return userMapper.toDTO(saved);
     }
 
@@ -75,17 +75,17 @@ public class UserService {
         if (dto.getEmail() != null) user.setEmail(dto.getEmail().trim());
         if (dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber().trim());
         if (dto.getRole() != null) {
-            logger.info("Admin changing role of user {} to {}", userId, dto.getRole());
+            log.info("Admin changing role of user {} to {}", userId, dto.getRole());
             user.setRole(dto.getRole());
         }
         if (dto.getStatus() != null) {
-            logger.info("Admin changing status of user {} to {}", userId, dto.getStatus());
+            log.info("Admin changing status of user {} to {}", userId, dto.getStatus());
             user.setStatus(dto.getStatus());
         }
         user.setUpdatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
-        logger.info("User {} updated", userId);
+        log.info("User {} updated", userId);
         return userMapper.toDTO(saved);
     }
 
@@ -94,6 +94,6 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exist"));
         user.setStatus(UserStatus.DEACTIVATED);
         userRepository.save(user);
-        logger.info("User {} deactivated", userId);
+        log.info("User {} deactivated", userId);
     }
 }

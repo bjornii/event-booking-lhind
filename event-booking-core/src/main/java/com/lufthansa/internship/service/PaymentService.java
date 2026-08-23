@@ -22,7 +22,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class PaymentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
@@ -31,7 +31,7 @@ public class PaymentService {
     public PaymentResponseDTO processPayment(PaymentRequestDTO request) {
         PaymentStrategy strategy = strategies.get(request.getType().name().toLowerCase());
         if (strategy == null) {
-            logger.warn("Unsupported payment type requested: {}", request.getType());
+            log.warn("Unsupported payment type requested: {}", request.getType());
             throw new UnsupportedPaymentTypeException("No strategy for payment type: " + request.getType());
         }
         Booking booking = bookingRepository.findById(request.getBookingId())
@@ -47,15 +47,15 @@ public class PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
-        logger.debug("Payment record created for booking {}, amount {}", booking.getId(), request.getAmount());
+        log.debug("Payment record created for booking {}, amount {}", booking.getId(), request.getAmount());
 
         try {
             strategy.pay(request.getAmount());
             payment.setStatus(PaymentStatus.SUCCESS);
-            logger.info("Payment succeeded for booking {} via {}", booking.getId(), request.getType());
+            log.info("Payment succeeded for booking {} via {}", booking.getId(), request.getType());
         } catch (Exception e) {
             payment.setStatus(PaymentStatus.FAILED);
-            logger.warn("Payment failed for booking {} via {}: {}", booking.getId(), request.getType(), e.getMessage());
+            log.warn("Payment failed for booking {} via {}: {}", booking.getId(), request.getType(), e.getMessage());
         }
 
         Payment saved = paymentRepository.save(payment);

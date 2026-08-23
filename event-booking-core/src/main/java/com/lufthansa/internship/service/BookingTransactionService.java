@@ -13,7 +13,8 @@ import com.lufthansa.internship.repository.EventRepository;
 import com.lufthansa.internship.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,14 +23,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingTransactionService {
 
+    private static final Logger log = LoggerFactory.getLogger(BookingTransactionService.class);
+
     private final EventRepository eventRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
 
     @Transactional
     public Booking createInitialBooking(BookingWithPaymentRequestDTO request) {
-        Event event = eventRepository.findById(request.getEventId()).orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User does not exist!"));
+        Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new EventNotFoundException("Event does not exist!"));
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User does not exist!"));
 
         Booking booking = new Booking();
         booking.setSeatsBooked(request.getSeatsBooked());
@@ -39,23 +44,34 @@ public class BookingTransactionService {
 
         int updated = eventRepository.tryReserveSeats(event.getId(), request.getSeatsBooked());
 
-        booking.setStatus(updated > 0 ? BookingStatus.PENDING_PAYMENT : BookingStatus.WAITLIST);
+        if (updated > 0) {
+            booking.setStatus(BookingStatus.PENDING_PAYMENT);
+            log.info("Reserved {} seats for event {}, booking pending payment", request.getSeatsBooked(), event.getId());
+        } else {
+            booking.setStatus(BookingStatus.WAITLIST);
+            log.info("No seats available for event {}, booking for user {} waitlisted", event.getId(), user.getId());
+        }
 
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        log.debug("Booking {} created with status {}", saved.getId(), saved.getStatus());
+        return saved;
     }
 
     @Transactional
     public Booking finalizeBooking(Integer bookingId, boolean paymentSucceeded) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
 
         if (paymentSucceeded) {
             booking.setStatus(BookingStatus.CONFIRMED);
+            log.info("Booking {} confirmed after successful payment", bookingId);
         } else {
             booking.setStatus(BookingStatus.CANCELLED);
             eventRepository.releaseSeats(booking.getEvent().getId(), booking.getSeatsBooked());
+            log.warn("Booking {} cancelled after failed payment, {} seats released back to event {}",
+                    bookingId, booking.getSeatsBooked(), booking.getEvent().getId());
         }
 
         return bookingRepository.save(booking);
     }
-
 }

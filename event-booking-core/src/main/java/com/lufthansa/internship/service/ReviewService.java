@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReviewService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
+    private static final Logger log = LoggerFactory.getLogger(ReviewService.class);
 
     private final ReviewRepository reviewRepository;
     private final EventRepository eventRepository;
@@ -39,16 +39,16 @@ public class ReviewService {
 
         boolean hasBooking = bookingRepository.existsByUserAndEventAndStatus(user, event, BookingStatus.CONFIRMED);
         if (!hasBooking) {
-            logger.warn("Review rejected: user {} has no confirmed booking for event {}", userId, event.getId());
+            log.warn("Review rejected: user {} has no confirmed booking for event {}", userId, event.getId());
             throw new InvalidReviewRequestException("User does not have booking, cannot leave review");
         }
         boolean hasReview = reviewRepository.existsByUserAndEvent(user, event);
         if (hasReview) {
-            logger.warn("Review rejected: user {} already reviewed event {}", userId, event.getId());
+            log.warn("Review rejected: user {} already reviewed event {}", userId, event.getId());
             throw new InvalidReviewRequestException("User already left a review for this event");
         }
         if (event.getStatus() != EventStatus.FINISHED) {
-            logger.warn("Review rejected: event {} has not finished yet", event.getId());
+            log.warn("Review rejected: event {} has not finished yet", event.getId());
             throw new InvalidReviewRequestException("Cannot leave review before event ends");
         }
 
@@ -59,7 +59,7 @@ public class ReviewService {
         review.setCreatedAt(LocalDateTime.now());
 
         Review saved = reviewRepository.save(review);
-        logger.info("Review {} created by user {} for event {}", saved.getId(), userId, event.getId());
+        log.info("Review {} created by user {} for event {}", saved.getId(), userId, event.getId());
         return reviewMapper.toDTO(saved);
     }
 
@@ -67,6 +67,6 @@ public class ReviewService {
     public void deleteReview(Integer reviewId){
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException("Review not found"));
         reviewRepository.delete(review);
-        logger.info("Review {} deleted", reviewId);
+        log.info("Review {} deleted", reviewId);
     }
 }
