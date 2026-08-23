@@ -142,6 +142,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(DuplicateVenueException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateVenue(DuplicateVenueException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.CONFLICT.value())
+                .error("Duplicate Venue").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
 
 
 
