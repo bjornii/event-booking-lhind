@@ -11,6 +11,8 @@ public interface ReviewMapper {
 
     @Mapping(source = "eventId", target = "event.id")
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Review toEntity(ReviewRequestDTO dto);
 
     @Mapping(source = "user.username", target = "userName")

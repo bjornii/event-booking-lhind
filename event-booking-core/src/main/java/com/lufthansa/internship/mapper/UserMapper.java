@@ -12,6 +12,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {BookingMapper.class, ReviewMapper.class})
 public interface UserMapper {
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "events", ignore = true)
     @Mapping(target = "bookings", ignore = true)
@@ -30,6 +31,5 @@ public interface UserMapper {
         if (events == null) return List.of();
         return events.stream().map(Event::getTitle).toList();
     }
-
 
 }

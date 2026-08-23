@@ -13,6 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface VenueMapper {
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "events", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -22,6 +23,11 @@ public interface VenueMapper {
     @Mapping(target = "events", expression = "java(mapEventTitles(venue.getEvents()))")
     VenueResponseDTO toDTO(Venue venue);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "events", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromDTO(VenueRequestDTO dto, @MappingTarget Venue venue);
 
     default List<String> mapEventTitles(List<Event> events){

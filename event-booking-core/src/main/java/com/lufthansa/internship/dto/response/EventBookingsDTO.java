@@ -14,5 +14,5 @@ import java.util.List;
 public class EventBookingsDTO {
     @NotBlank @Size(min = 4, max = 30)
     private String eventTitle;
-    private List<BookingResponseDTO> bookings = new ArrayList<>();
+    @Builder.Default private List<BookingResponseDTO> bookings = new ArrayList<>();
 }
