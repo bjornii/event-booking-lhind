@@ -126,6 +126,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryNotFound(CategoryNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.NOT_FOUND.value())
+                .error("Category Not Found").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(DuplicateCategoryException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateCategory(DuplicateCategoryException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now()).status(HttpStatus.CONFLICT.value())
+                .error("Duplicate Category").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
 
 
 
